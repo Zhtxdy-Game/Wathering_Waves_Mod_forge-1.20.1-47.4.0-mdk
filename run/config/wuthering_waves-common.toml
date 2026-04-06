@@ -1,0 +1,13 @@
+#Whether to log the dirt block on common setup
+logDirtBlock = true
+#A magic number
+#Range: > 0
+magicNumber = 42
+#What you want the introduction message to be for the magic number
+magicNumberIntroduction = "The magic number is... "
+#A list of items to log on common setup.
+items = ["minecraft:iron_ingot"]
+#Maximum number of Echo instances that can be stored in the terminal (per player)
+#Range: 1 ~ 3000
+terminal_max_capacity = 200
+

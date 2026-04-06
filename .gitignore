@@ -1,0 +1,23 @@
+# 编译输出目录
+/build/
+/out/
+/bin/
+
+# IDE 配置文件
+/.idea/
+/.gradle/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# 本地运行产生的文件
+/run/           # 这是Minecraft运行产生的世界、日志等文件夹，一定不能上传！
+/eclipse/
+*.log
+
+# 其他
+*.class
+*.jar

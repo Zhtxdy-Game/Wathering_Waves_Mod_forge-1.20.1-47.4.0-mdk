@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures":
+  {
+    "layer0": "wuthering_waves:item/wuthering_waves_tabs_pic"
+  }
+}
