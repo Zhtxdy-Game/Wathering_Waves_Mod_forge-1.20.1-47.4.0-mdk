@@ -27,15 +27,7 @@ public class TerminalTestCommand
         {
             player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
             {
-                EchoInstance testEcho = new EchoInstance("无冠者", 1);
-                boolean added = data.addEcho(testEcho);
-                if (added)
-                {
-                    player.sendSystemMessage(Component.literal("已添加声骸: 无冠者 (等级1)，当前总数: " + data.getCurrentCount()));
-                } else
-                {
-                    player.sendSystemMessage(Component.literal("添加失败，终端已满 (容量: " + data.getMaxCapacity() + ")"));
-                }
+
             });
             return 1;
         }

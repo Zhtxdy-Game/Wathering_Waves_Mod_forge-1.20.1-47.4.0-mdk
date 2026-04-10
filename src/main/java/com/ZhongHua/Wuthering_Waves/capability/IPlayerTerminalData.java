@@ -15,4 +15,8 @@ public interface IPlayerTerminalData
     void setMaxCapacity(int capacity);
     CompoundTag serializeNBT();
     void deserializeNBT(CompoundTag nbt);
+    // 装备槽位相关
+    List<EchoInstance> getEquippedEchoes();          // 返回5个槽位的列表（可能包含null）
+    void equipEcho(int slot, EchoInstance echo);    // 装备声骸到指定槽位
+    void unequipEcho(int slot);                     // 卸下指定槽位
 }

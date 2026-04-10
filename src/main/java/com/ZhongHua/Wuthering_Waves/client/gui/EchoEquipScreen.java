@@ -1,6 +1,7 @@
 package com.ZhongHua.Wuthering_Waves.client.gui;
 
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
+import com.ZhongHua.Wuthering_Waves.network.ClientTerminalDataCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class EchoEquipScreen extends Screen
 {
+
     private static final List<String> ATTRIBUTE_KEYS = List.of(
             "attribute.wuthering_waves.health",
             "attribute.wuthering_waves.attack",
@@ -33,29 +35,29 @@ public class EchoEquipScreen extends Screen
     );
 
     private final double[] attributeValues = new double[ATTRIBUTE_KEYS.size()];
-    private final List<EchoInstance> equippedEcho;
+    private  List<EchoInstance> equippedEcho;
 
-    // 构造函数1：无参，创建默认测试数据
+
+    // 无参构造器
     public EchoEquipScreen()
     {
-        this(new ArrayList<>());
-        // 初始化默认测试数据
-        for (int i = 0; i < 5; i++) equippedEcho.add(null);
-        equippedEcho.set(0, new EchoInstance("无冠者", 3));
-        equippedEcho.set(1, new EchoInstance("鸣钟之龟", 2));
-    }
-
-    // 构造函数2：接受已有列表
-    public EchoEquipScreen(List<EchoInstance> equippedEcho)
-    {
         super(Component.literal("Echo Equip"));
-        this.equippedEcho = equippedEcho;
-        while (this.equippedEcho.size() < 5) this.equippedEcho.add(null);
     }
 
     @Override
-    protected void init() {
+    protected void init()
+    {
+
+        // 每次打开界面时从客户端缓存获取最新的装备列表
+        this.equippedEcho = new ArrayList<>(ClientTerminalDataCache.getEquippedEchoes());
+        // 确保列表长度为5
+        while (this.equippedEcho.size() < 5)
+        {
+            this.equippedEcho.add(null);
+        }
+
         super.init();
+
         int screenWidth = this.width;
         int screenHeight = this.height;
 
@@ -77,7 +79,7 @@ public class EchoEquipScreen extends Screen
             // 在 EchoEquipScreen.init() 的槽位按钮点击事件中
             Button slotButton = Button.builder(buttonText, btn ->
             {
-                Minecraft.getInstance().setScreen(new EchoSelectScreen(slotIndex, equippedEcho));
+                Minecraft.getInstance().setScreen(new EchoSelectScreen(slotIndex, equippedEcho, 0));
             }).bounds(rightStartX, y, buttonWidth, buttonHeight).build();
             this.addRenderableWidget(slotButton);
         }
@@ -92,7 +94,8 @@ public class EchoEquipScreen extends Screen
         int leftX = 20;
         int startY = 40;
         int lineHeight = 20;
-        for (int i = 0; i < ATTRIBUTE_KEYS.size(); i++) {
+        for (int i = 0; i < ATTRIBUTE_KEYS.size(); i++)
+        {
             String key = ATTRIBUTE_KEYS.get(i);
             double value = attributeValues[i];
             String valueStr = (key.contains("rate") || key.contains("dmg") || key.contains("efficiency") || key.contains("bonus")) ?
@@ -100,6 +103,8 @@ public class EchoEquipScreen extends Screen
             Component line = Component.translatable(key + ".display", Component.translatable(key), valueStr);
             guiGraphics.drawString(this.font, line, leftX, startY + i * lineHeight, 0xFFFFFF, false);
         }
+
+
 
         int midX = this.width / 3;
         int midWidth = this.width / 3;
@@ -113,4 +118,19 @@ public class EchoEquipScreen extends Screen
     public boolean isPauseScreen() {
         return false;
     }
+
+    public void refreshFromCache()
+    {
+        this.equippedEcho.clear();
+        this.equippedEcho.addAll(ClientTerminalDataCache.getEquippedEchoes());
+        while (this.equippedEcho.size() < 5)
+        {
+            this.equippedEcho.add(null);
+        }
+        // 清空并重新初始化所有组件
+        this.clearWidgets();
+        this.init();
+    }
+
+
 }

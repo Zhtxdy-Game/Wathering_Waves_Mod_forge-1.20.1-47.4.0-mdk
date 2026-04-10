@@ -4,7 +4,7 @@
 
   "entity.wuthering_waves.crownless": "Crownless",
   "item.wuthering_waves.crownless_spawn_egg": "Crownless Spawn Egg",
-  "item.wuthering_waves.crownless_echo": "Crownless Echo",
+  "item.wuthering_waves.crownless_echo_crystal": "Crownless_Echo_Crystal",
 
   "Terminal_UI_Text_English": "HuiMing Terminal is initializing...",
   "button.wuthering_waves.echo": "Echo",
@@ -44,8 +44,11 @@
   "attribute.wuthering_waves.spectro_dmg.display": "%s: %s",
   "attribute.wuthering_waves.havoc_dmg.display": "%s: %s",
   "attribute.wuthering_waves.healing_bonus.display": "%s: %s",
+
   "button.wuthering_waves.equip": "Equip",
   "button.wuthering_waves.cultivate": "Cultivate",
+  "button.wuthering_waves.unequip": "Unequip",
+
 
   "button.wuthering_waves.placeholder": "Coming Soon"
 

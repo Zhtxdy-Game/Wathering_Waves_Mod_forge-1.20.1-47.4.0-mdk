@@ -1,354 +1,252 @@
 package com.ZhongHua.Wuthering_Waves.echo;
 
 import net.minecraft.nbt.*;
+import java.util.*;
+import java.util.UUID;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-/**
- * 声骸实例 - 极简骨架
- * 后续会扩展：套装、稀有度、主属性、辅音属性、技能等
- */
 public class EchoInstance
 {
-    private String name;
-    private int level;         // 等级 0~5
-    private int cost;          // COST 1/3/4
-    private String mainStat;   // 主属性名称
-    private double mainStatValue;       //主属性数值
-    private List<String> subStats;      // 副属性名称列表
-    private List<Double> subStatValues;     //副属性数值
-    // 技能描述等暂略
+    private final String name;
+    private int level;          // 0~5，非 final 因为可以升级
+    private final int cost;
+    private final String mainStat;
+    private final double maxMainStatValue;
+    private double mainStatValue;  // 非 final 因为随等级变化
+    private final List<EchoSubStat> subStats;
+    private final UUID id;  // final，必须在构造时确定
 
-
-    // 构造器
-    public EchoInstance(String name, int level)
+    // ====================== 唯一的私有主构造器 ======================
+    private EchoInstance(String name, int level, int cost, String mainStat,
+                         double maxMainStatValue, List<EchoSubStat> subStats, UUID id)
     {
+        this.id = Objects.requireNonNull(id, "UUID cannot be null");
         this.name = name;
         this.level = level;
-        // 临时默认值
-        this.cost = 4;
-        this.mainStat = "暴击";
-        this.mainStatValue = 0.22;
-        this.subStats = Arrays.asList("攻击", "生命", "防御");
-        this.subStatValues = Arrays.asList(0.09, 0.05, 0.05);
-    }
-
-    // ----- getter & setter -----
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    public int getLevel()
-    {
-        return level;
-    }
-
-    public void setLevel(int level)
-    {
-        this.level = level;
-    }
-
-    public int getCost()
-    {
-        return cost;
-    }
-
-    public void setCost(int cost)
-    {
         this.cost = cost;
-    }
-
-    public String getMainStat()
-    {
-        return mainStat;
-    }
-
-    public void setMainStat(String mainStat)
-    {
         this.mainStat = mainStat;
+        this.maxMainStatValue = maxMainStatValue;
+        this.subStats = subStats != null ? subStats : new ArrayList<>();
+        recalcMainStat(); // 计算当前等级的主属性值
     }
 
-    public double getMainStatValue()
-    {
-        return mainStatValue;
-    }
+    // ====================== 公开静态工厂方法 ======================
 
-    public void setMainStatValue(double mainStatValue)
-    {
-        this.mainStatValue = mainStatValue;
-    }
-
-    public List<String> getSubStats()
-    {
-        return subStats;
-    }
-
-    public void setSubStats(List<String> subStats)
-    {
-        this.subStats = subStats;
-    }
-
-    public List<Double> getSubStatValues()
-    {
-        return subStatValues;
-    }
-
-    public void setSubStatValues(List<Double> subStatValues)
-    {
-        this.subStatValues = subStatValues;
-    }
-
-    // ----- NBT 转换 -----
     /**
-     * 将此声骸实例保存到 CompoundTag 中
-     * @return 包含数据的 CompoundTag
+     * 用于从 NBT 反序列化（保留原有 UUID）
      */
+    public static EchoInstance fromNBT(CompoundTag tag)
+    {
+        UUID id = tag.hasUUID("Id") ? tag.getUUID("Id") : UUID.randomUUID();
+        String name = tag.getString("Name");
+        int level = tag.getInt("Level");
+        int cost = tag.getInt("Cost");
+        String mainStat = tag.getString("MainStat");
+        double maxMainStatValue = tag.getDouble("MaxMainStatValue");
+
+        // 读取副属性
+        List<EchoSubStat> subStats = new ArrayList<>();
+        ListTag subList = tag.getList("SubStats", Tag.TAG_COMPOUND);
+        for (int i = 0; i < subList.size(); i++) {
+            subStats.add(EchoSubStat.fromNBT(subList.getCompound(i)));
+        }
+
+        // 数据完整性检查
+        while (subStats.size() < 5) {
+            subStats.add(new EchoSubStat("攻击百分比", 0.06));
+        }
+
+        EchoInstance inst = new EchoInstance(name, level, cost, mainStat,
+                maxMainStatValue, subStats, id);
+        // 确保等级正确（覆盖从 NBT 读取的 mainStatValue）
+        inst.setLevel(level);
+        return inst;
+    }
+
+    /**
+     * 创建新的随机声骸（生成新 UUID）
+     */
+    public static EchoInstance createRandom(String name, int cost, List<String> possibleMainStats)
+    {
+        List<String> pool = (possibleMainStats != null && !possibleMainStats.isEmpty())
+                ? possibleMainStats : getMainStatPoolForCost(cost);
+
+        if (pool.isEmpty()) {
+            pool = List.of("攻击百分比");
+        }
+
+        String mainStat = pool.get(RANDOM.nextInt(pool.size()));
+        double maxValue = getMaxMainStatValue(mainStat, cost);
+        List<EchoSubStat> subStats = generateRandomSubStats();
+
+        // 统一使用主构造器，生成新 UUID
+        return new EchoInstance(name, 0, cost, mainStat, maxValue, subStats, UUID.randomUUID());
+    }
+
+    // 删除之前的 public EchoInstance(String name, int level) 构造器
+    // 如果外部需要创建空壳，使用 createRandom 或 fromNBT
+
+    // ====================== Getter 方法 ======================
+
+    public UUID getId() { return id; }
+    public String getName() { return name; }
+    public int getLevel() { return level; }
+    public int getCost() { return cost; }
+    public String getMainStat() { return mainStat; }
+    public double getMainStatValue() { return mainStatValue; }
+    public double getMaxMainStatValue() { return maxMainStatValue; }
+    public List<EchoSubStat> getAllSubStats() { return subStats; }
+
+    // 获取已解锁的副属性（前 level 条）
+    public List<EchoSubStat> getActiveSubStats()
+    {
+        if (level <= 0) return List.of();
+        int endIndex = Math.min(level, subStats.size());
+        return List.copyOf(subStats.subList(0, endIndex));
+    }
+
+    // ====================== 等级系统 ======================
+
+    public void setLevel(int newLevel)
+    {
+        if (newLevel < 0) newLevel = 0;
+        if (newLevel > 5) newLevel = 5;
+        this.level = newLevel;
+        recalcMainStat();
+    }
+
+    private void recalcMainStat() {
+        this.mainStatValue = maxMainStatValue * (0.5 + level * 0.1);
+    }
+
+    // ====================== 属性计算 ======================
+
+    /**
+     * 计算当前声骸提供的所有属性加成（用于应用到玩家）
+     */
+    public Map<String, Double> recalcStats() {
+        Map<String, Double> stats = new HashMap<>();
+
+        // 主属性始终生效
+        stats.put(mainStat, mainStatValue);
+
+        // 副属性根据等级解锁
+        int unlocked = Math.min(level, subStats.size());
+        for (int i = 0; i < unlocked; i++) {
+            EchoSubStat sub = subStats.get(i);
+            stats.merge(sub.getName(), sub.getValue(), Double::sum);
+        }
+
+        return stats;
+    }
+
+    // ====================== NBT 序列化 ======================
+
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
-        tag.putString("Name", this.name);
-        tag.putInt("Level", this.level);
-        tag.putInt("Cost", this.cost);
-        tag.putString("MainStat", this.mainStat);
-        tag.putDouble("MainStatValue", this.mainStatValue);
+        tag.putUUID("Id", this.id);
+        tag.putString("Name", name);
+        tag.putInt("Level", level);
+        tag.putInt("Cost", cost);
+        tag.putString("MainStat", mainStat);
+        tag.putDouble("MaxMainStatValue", maxMainStatValue);
+        tag.putDouble("MainStatValue", mainStatValue);
 
-        // 存储副属性列表
-        ListTag subStatsTag = new ListTag();
-        for (String stat : subStats) {
-            subStatsTag.add(StringTag.valueOf(stat));
+        ListTag subList = new ListTag();
+        for (EchoSubStat sub : subStats) {
+            subList.add(sub.toNBT());
         }
-        tag.put("SubStats", subStatsTag);
-
-        ListTag subValuesTag = new ListTag();
-        for (Double value : subStatValues) {
-            subValuesTag.add(DoubleTag.valueOf(value));
-        }
-        tag.put("SubStatValues", subValuesTag);
-
+        tag.put("SubStats", subList);
         return tag;
     }
 
-    public static EchoInstance fromNBT(CompoundTag tag)
-    {
-        if (tag == null || !tag.contains("Name", Tag.TAG_STRING))
-        {
-            return new EchoInstance("未知声骸", 0);
-        }
-        String name = tag.getString("Name");
-        int level = tag.getInt("Level");
-        EchoInstance instance = new EchoInstance(name, level);
+    // ====================== 副属性生成（保持不变）======================
 
-        if (tag.contains("Cost", Tag.TAG_INT))
-        {
-            instance.setCost(tag.getInt("Cost"));
-        }
-        if (tag.contains("MainStat", Tag.TAG_STRING))
-        {
-            instance.setMainStat(tag.getString("MainStat"));
-        }
-        if (tag.contains("MainStatValue", Tag.TAG_DOUBLE))
-        {
-            instance.setMainStatValue(tag.getDouble("MainStatValue"));
-        }
+    private static final Random RANDOM = new Random();
 
-        // 读取副属性
-        if (tag.contains("SubStats", Tag.TAG_LIST))
-        {
-            ListTag subStatsTag = tag.getList("SubStats", Tag.TAG_STRING);
-            List<String> subStatsList = new ArrayList<>();
-            for (int i = 0; i < subStatsTag.size(); i++) {
-                subStatsList.add(subStatsTag.getString(i));
+    private static class SubStatTemplate {
+        String name; double min; double max; boolean isPercentage;
+        SubStatTemplate(String name, double min, double max, boolean isPercentage) {
+            this.name = name; this.min = min; this.max = max; this.isPercentage = isPercentage;
+        }
+        EchoSubStat generateRandom() {
+            double value = min + (max - min) * RANDOM.nextDouble();
+            if (!isPercentage) value = Math.round(value);
+            return new EchoSubStat(name, value);
+        }
+    }
+
+    private static final List<SubStatTemplate> SUB_STAT_TEMPLATES = List.of(
+            new SubStatTemplate("暴击率", 0.063, 0.105, true),
+            new SubStatTemplate("暴击伤害", 0.126, 0.21, true),
+            new SubStatTemplate("攻击百分比", 0.06, 0.116, true),
+            new SubStatTemplate("生命百分比", 0.06, 0.116, true),
+            new SubStatTemplate("防御百分比", 0.081, 0.147, true),
+            new SubStatTemplate("共鸣效率", 0.068, 0.124, true),
+            new SubStatTemplate("普攻伤害加成", 0.06, 0.116, true),
+            new SubStatTemplate("重击伤害加成", 0.06, 0.116, true),
+            new SubStatTemplate("共鸣技能伤害加成", 0.06, 0.116, true),
+            new SubStatTemplate("共鸣解放伤害加成", 0.06, 0.116, true),
+            new SubStatTemplate("固定生命值", 2, 5, false),
+            new SubStatTemplate("固定攻击力", 5, 10, false),
+            new SubStatTemplate("固定防御力", 5, 10, false)
+    );
+
+    private static List<EchoSubStat> generateRandomSubStats() {
+        List<EchoSubStat> result = new ArrayList<>();
+        Set<String> usedNames = new HashSet<>();
+        List<SubStatTemplate> shuffled = new ArrayList<>(SUB_STAT_TEMPLATES);
+        Collections.shuffle(shuffled, RANDOM);
+
+        for (SubStatTemplate template : shuffled) {
+            if (result.size() >= 5) break;
+            if (!usedNames.contains(template.name)) {
+                result.add(template.generateRandom());
+                usedNames.add(template.name);
             }
-            instance.setSubStats(subStatsList);
-        }
-        if (tag.contains("SubStatValues", Tag.TAG_LIST))
-        {
-            ListTag subValuesTag = tag.getList("SubStatValues", Tag.TAG_DOUBLE);
-            List<Double> subValuesList = new ArrayList<>();
-            for (int i = 0; i < subValuesTag.size(); i++)
-            {
-                subValuesList.add(subValuesTag.getDouble(i));
-            }
-            instance.setSubStatValues(subValuesList);
         }
 
-        return instance;
+        while (result.size() < 5) {
+            result.add(new EchoSubStat("攻击百分比", 0.06));
+        }
+        return result;
     }
 
-    // 可选：用于调试或显示
-    @Override
-    public String toString()
-    {
-        return String.format("EchoInstance{name='%s', level=%d}", name, level);
+    private static List<String> getMainStatPoolForCost(int cost) {
+        return switch (cost) {
+            case 4 -> List.of("暴击率", "暴击伤害", "攻击百分比", "防御百分比", "生命百分比", "治疗加成");
+            case 3 -> List.of("冷凝伤害加成", "热熔伤害加成", "导电伤害加成", "气动伤害加成",
+                    "衍射伤害加成", "湮灭伤害加成", "攻击百分比", "生命百分比",
+                    "防御百分比", "共鸣效率");
+            case 1 -> List.of("攻击百分比", "防御百分比", "生命百分比");
+            default -> List.of("攻击百分比");
+        };
     }
 
-    // 测试数据生成方法（可放在 EchoInstance 类中或单独工具类）
-    public static List<EchoInstance> createTestData()
-    {
-        List<EchoInstance> list = new ArrayList<>();
-
-        // 1. 无冠者 (4C)
-        EchoInstance s1 = new EchoInstance("无冠者", 5);
-        s1.setCost(4);
-        s1.setMainStat("暴击伤害");
-        s1.setMainStatValue(0.44); // 44%
-        s1.setSubStats(List.of("攻击百分比", "暴击率", "生命百分比", "共鸣效率", "防御百分比"));
-        s1.setSubStatValues(List.of(0.09, 0.06, 0.05, 0.08, 0.05));
-        list.add(s1);
-
-        // 2. 鸣钟之龟 (4C)
-        EchoInstance s2 = new EchoInstance("鸣钟之龟", 3);
-        s2.setCost(4);
-        s2.setMainStat("暴击率");
-        s2.setMainStatValue(0.22);
-        s2.setSubStats(List.of("暴击伤害", "攻击百分比", "防御百分比", "生命百分比", "元素精通"));
-        s2.setSubStatValues(List.of(0.15, 0.07, 0.06, 0.05, 0.08));
-        list.add(s2);
-
-        // 3. 绿熔蜥蜴 (3C)
-        EchoInstance s3 = new EchoInstance("绿熔蜥蜴", 2);
-        s3.setCost(3);
-        s3.setMainStat("气动伤害加成");
-        s3.setMainStatValue(0.30);
-        s3.setSubStats(List.of("暴击率", "攻击百分比", "生命百分比", "防御百分比"));
-        s3.setSubStatValues(List.of(0.05, 0.06, 0.04, 0.04));
-        list.add(s3);
-
-        // 4. 振铎乐师 (3C)
-        EchoInstance s4 = new EchoInstance("振铎乐师", 1);
-        s4.setCost(3);
-        s4.setMainStat("共鸣效率");
-        s4.setMainStatValue(0.32);
-        s4.setSubStats(List.of("攻击百分比", "暴击伤害", "生命百分比"));
-        s4.setSubStatValues(List.of(0.06, 0.08, 0.05));
-        list.add(s4);
-
-        // 5. 残星门徒 (1C)
-        EchoInstance s5 = new EchoInstance("残星门徒", 0);
-        s5.setCost(1);
-        s5.setMainStat("生命百分比");
-        s5.setMainStatValue(0.10);
-        s5.setSubStats(List.of("防御百分比", "攻击百分比"));
-        s5.setSubStatValues(List.of(0.05, 0.04));
-        list.add(s5);
-
-        // 6. 巡徊猎手 (1C)
-        EchoInstance s6 = new EchoInstance("巡徊猎手", 4);
-        s6.setCost(1);
-        s6.setMainStat("攻击百分比");
-        s6.setMainStatValue(0.12);
-        s6.setSubStats(List.of("暴击率", "生命百分比", "防御百分比"));
-        s6.setSubStatValues(List.of(0.04, 0.05, 0.05));
-        list.add(s6);
-
-        // 7. 寒霜陆龟 (1C)
-        EchoInstance s7 = new EchoInstance("寒霜陆龟", 2);
-        s7.setCost(1);
-        s7.setMainStat("防御百分比");
-        s7.setMainStatValue(0.15);
-        s7.setSubStats(List.of("生命百分比", "攻击百分比"));
-        s7.setSubStatValues(List.of(0.06, 0.05));
-        list.add(s7);
-
-        // 8. 雷翼飞鸟 (3C)
-        EchoInstance s8 = new EchoInstance("雷翼飞鸟", 3);
-        s8.setCost(3);
-        s8.setMainStat("导电伤害加成");
-        s8.setMainStatValue(0.30);
-        s8.setSubStats(List.of("暴击伤害", "攻击百分比", "共鸣效率"));
-        s8.setSubStatValues(List.of(0.12, 0.06, 0.07));
-        list.add(s8);
-
-        // 9. 熔岩巨人 (4C)
-        EchoInstance s9 = new EchoInstance("熔岩巨人", 4);
-        s9.setCost(4);
-        s9.setMainStat("攻击百分比");
-        s9.setMainStatValue(0.18);
-        s9.setSubStats(List.of("暴击率", "暴击伤害", "生命百分比", "防御百分比", "元素精通"));
-        s9.setSubStatValues(List.of(0.05, 0.10, 0.05, 0.05, 0.06));
-        list.add(s9);
-
-        // 10. 风蚀舞者 (1C)
-        EchoInstance s10 = new EchoInstance("风蚀舞者", 1);
-        s10.setCost(1);
-        s10.setMainStat("元素精通");
-        s10.setMainStatValue(0.08);
-        s10.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s10.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s10);
-
-        EchoInstance s11 = new EchoInstance("风蚀舞者", 1);
-        s11.setCost(1);
-        s11.setMainStat("元素精通");
-        s11.setMainStatValue(0.08);
-        s11.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s11.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s11);
-
-        EchoInstance s12 = new EchoInstance("风蚀舞者", 1);
-        s12.setCost(1);
-        s12.setMainStat("元素精通");
-        s12.setMainStatValue(0.08);
-        s12.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s12.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s12);
-
-        EchoInstance s13 = new EchoInstance("风蚀舞者", 1);
-        s13.setCost(1);
-        s13.setMainStat("元素精通");
-        s13.setMainStatValue(0.08);
-        s13.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s13.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s13);
-
-        EchoInstance s14 = new EchoInstance("风蚀舞者", 1);
-        s14.setCost(1);
-        s14.setMainStat("元素精通");
-        s14.setMainStatValue(0.08);
-        s14.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s14.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s14);
-
-        EchoInstance s15 = new EchoInstance("风蚀舞者", 1);
-        s15.setCost(1);
-        s15.setMainStat("元素精通");
-        s15.setMainStatValue(0.08);
-        s15.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s15.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s15);
-
-        EchoInstance s16 = new EchoInstance("风蚀舞者", 1);
-        s16.setCost(1);
-        s16.setMainStat("元素精通");
-        s16.setMainStatValue(0.08);
-        s16.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s16.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s16);
-
-        EchoInstance s17 = new EchoInstance("风蚀舞者", 1);
-        s17.setCost(1);
-        s17.setMainStat("元素精通");
-        s17.setMainStatValue(0.08);
-        s17.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s17.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s17);
-
-        EchoInstance s18 = new EchoInstance("风蚀舞者", 1);
-        s18.setCost(1);
-        s18.setMainStat("元素精通");
-        s18.setMainStatValue(0.08);
-        s18.setSubStats(List.of("攻击百分比", "生命百分比"));
-        s18.setSubStatValues(List.of(0.05, 0.05));
-        list.add(s18);
-
-        return list;
+    private static double getMaxMainStatValue(String mainStat, int cost) {
+        return switch (cost) {
+            case 4 -> switch (mainStat) {
+                case "暴击率" -> 0.22;
+                case "暴击伤害" -> 0.44;
+                case "攻击百分比" -> 0.33;
+                case "防御百分比" -> 0.418;
+                case "生命百分比" -> 0.33;
+                case "治疗加成" -> 0.264;
+                default -> 0.33;
+            };
+            case 3 -> switch (mainStat) {
+                case "冷凝伤害加成", "热熔伤害加成", "导电伤害加成",
+                     "气动伤害加成", "衍射伤害加成", "湮灭伤害加成" -> 0.30;
+                case "攻击百分比", "生命百分比" -> 0.30;
+                case "防御百分比" -> 0.38;
+                case "共鸣效率" -> 0.32;
+                default -> 0.30;
+            };
+            case 1 -> switch (mainStat) {
+                case "攻击百分比", "防御百分比" -> 0.18;
+                case "生命百分比" -> 0.228;
+                default -> 0.18;
+            };
+            default -> 0.30;
+        };
     }
-
 }

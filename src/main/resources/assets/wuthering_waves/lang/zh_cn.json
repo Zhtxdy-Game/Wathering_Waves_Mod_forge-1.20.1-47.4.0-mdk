@@ -4,7 +4,7 @@
 
   "entity.wuthering_waves.crownless": "无冠者",
   "item.wuthering_waves.crownless_spawn_egg": "无冠者的刷怪蛋",
-  "item.wuthering_waves.crownless_echo": "无冠者的声骸",
+  "item.wuthering_waves.crownless_echo_crystal": "无冠者声骸结晶",
 
   "Terminal_UI_Text_Chinese": "终端正在初始化...",
   "button.wuthering_waves.echo": "声骸",
@@ -44,8 +44,10 @@
   "attribute.wuthering_waves.spectro_dmg.display": "%s: %s",
   "attribute.wuthering_waves.havoc_dmg.display": "%s: %s",
   "attribute.wuthering_waves.healing_bonus.display": "%s: %s",
+
   "button.wuthering_waves.equip": "装备",
   "button.wuthering_waves.cultivate": "培养",
+  "button.wuthering_waves.unequip": "卸下",
 
   "button.wuthering_waves.placeholder": "待开发"
 

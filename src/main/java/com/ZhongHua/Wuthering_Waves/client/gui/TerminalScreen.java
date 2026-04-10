@@ -1,10 +1,15 @@
 package com.ZhongHua.Wuthering_Waves.client.gui;
 
+import com.ZhongHua.Wuthering_Waves.capability.ModCapabilities;
+import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.List;
 
 public class TerminalScreen extends Screen {
     private static final Component TITLE = Component.literal("Terminal");
@@ -63,7 +68,16 @@ public class TerminalScreen extends Screen {
                                     btn ->
                                     {
                                         // 打开声骸装备界面
-                                        Minecraft.getInstance().setScreen(new EchoEquipScreen());
+                                        Player player = Minecraft.getInstance().player;
+                                        if (player != null)
+                                        {
+                                            player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
+                                            {
+                                                // 获取装备列表（注意：这里返回的是内部列表的引用，可以直接用于界面）
+                                                List<EchoInstance> equipped = data.getEquippedEchoes();
+                                                Minecraft.getInstance().setScreen(new EchoEquipScreen());
+                                            });
+                                        }
                                     })
                             .bounds(x, y, cellWidth, cellHeight)
                             .build();

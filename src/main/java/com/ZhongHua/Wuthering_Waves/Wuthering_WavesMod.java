@@ -1,15 +1,14 @@
 package com.ZhongHua.Wuthering_Waves;
 
-import com.ZhongHua.Wuthering_Waves.Item.ModCreativeModeTabs;
-import com.ZhongHua.Wuthering_Waves.Item.ModItems;
+import com.ZhongHua.Wuthering_Waves.item.ModCreativeModeTabs;
+import com.ZhongHua.Wuthering_Waves.item.ModItems;
 import com.ZhongHua.Wuthering_Waves.client.model.CrownlessModel;
 import com.ZhongHua.Wuthering_Waves.client.renderer.CrownlessRenderer;
 import com.ZhongHua.Wuthering_Waves.command.TerminalTestCommand;
 import com.ZhongHua.Wuthering_Waves.entity.ModEntities;
+import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraft.client.renderer.entity.ZombieRenderer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -45,6 +44,8 @@ public class Wuthering_WavesMod
         ModEntities.register(modEventBus);
         ModItems.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);
+        // 注册网络
+        ModNetwork.register();
 
 
         // Register ourselves for server and other game events we are interested in

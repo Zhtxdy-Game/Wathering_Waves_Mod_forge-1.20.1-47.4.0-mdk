@@ -21,3 +21,11 @@
 # 其他
 *.class
 *.jar
+/run
+/run/logs
+/run/crash-reports
+/run/logs
+/run
+/run/logs
+/run/crash-reports
+/run/crash-reports

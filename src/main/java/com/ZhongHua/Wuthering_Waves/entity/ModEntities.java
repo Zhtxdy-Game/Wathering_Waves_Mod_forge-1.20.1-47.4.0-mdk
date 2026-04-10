@@ -18,7 +18,8 @@ public class ModEntities
                     .sized(1.2F, 3.0F)        // 宽度 1.2 格，高度 3.0 格（体现高大体型）
                     .build("crownless"));//无冠者
 
-    public static void register(IEventBus eventBus) {
+    public static void register(IEventBus eventBus)
+    {
         ENTITIES.register(eventBus);
     }
 }

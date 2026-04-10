@@ -66,7 +66,7 @@ Stacktrace:
 	at net.minecraft.resources.ResourceLocation.assertValidPath(ResourceLocation.java:297) ~[forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
 	at net.minecraft.resources.ResourceLocation.<init>(ResourceLocation.java:55) ~[forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
 	at net.minecraftforge.registries.DeferredRegister.register(DeferredRegister.java:181) ~[forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23190%23197!/:?] {re:classloading}
-	at com.ZhongHua.Wuthering_Waves.Item.ModItems.<clinit>(ModItems.java:15) ~[%23196!/:?] {re:classloading}
+	at com.ZhongHua.Wuthering_Waves.item.ModItems.<clinit>(ModItems.java:15) ~[%23196!/:?] {re:classloading}
 	at com.ZhongHua.Wuthering_Waves.Wuthering_WavesMod.<init>(Wuthering_WavesMod.java:37) ~[%23196!/:?] {re:classloading}
 	at jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[?:?] {}
 	at java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[?:?] {}

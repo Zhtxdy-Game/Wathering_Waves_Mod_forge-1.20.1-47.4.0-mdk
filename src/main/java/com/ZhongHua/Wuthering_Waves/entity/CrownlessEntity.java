@@ -1,5 +1,7 @@
 package com.ZhongHua.Wuthering_Waves.entity;
 
+import com.ZhongHua.Wuthering_Waves.item.ModItems;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -45,4 +47,5 @@ public class CrownlessEntity extends Monster
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)   // 移动速度 0.3
                 .add(Attributes.ARMOR, 6.0D);           // 护甲值 6
     }
+
 }

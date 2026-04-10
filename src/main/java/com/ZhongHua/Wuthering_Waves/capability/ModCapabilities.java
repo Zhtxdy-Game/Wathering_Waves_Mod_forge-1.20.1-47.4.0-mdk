@@ -3,6 +3,7 @@ package com.ZhongHua.Wuthering_Waves.capability;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
@@ -12,6 +13,7 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -66,4 +68,20 @@ public class ModCapabilities
             instance.deserializeNBT(nbt);
         }
     }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event)
+    {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer)
+        {
+            serverPlayer.getCapability(PLAYER_TERMINAL_DATA).ifPresent(data ->
+            {
+                if (data instanceof PlayerTerminalDataImpl impl)
+                {
+                    impl.syncToClient(serverPlayer);
+                }
+            });
+        }
+    }
+
 }
