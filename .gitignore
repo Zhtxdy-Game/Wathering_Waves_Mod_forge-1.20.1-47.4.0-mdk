@@ -14,7 +14,7 @@
 .settings/
 
 # 本地运行产生的文件
-/run/           # 这是Minecraft运行产生的世界、日志等文件夹，一定不能上传！
+/run/          
 /eclipse/
 *.log
 
@@ -24,8 +24,7 @@
 /run
 /run/logs
 /run/crash-reports
-/run/logs
-/run
-/run/logs
-/run/crash-reports
-/run/crash-reports
+
+
+
+
