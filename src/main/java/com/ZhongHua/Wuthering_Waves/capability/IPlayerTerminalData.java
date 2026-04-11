@@ -2,6 +2,8 @@ package com.ZhongHua.Wuthering_Waves.capability;
 
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+
 import java.util.List;
 
 public interface IPlayerTerminalData
@@ -19,4 +21,11 @@ public interface IPlayerTerminalData
     List<EchoInstance> getEquippedEchoes();          // 返回5个槽位的列表（可能包含null）
     void equipEcho(int slot, EchoInstance echo);    // 装备声骸到指定槽位
     void unequipEcho(int slot);                     // 卸下指定槽位
+    //属性加成相关
+    EchoAttributeCache getAttributeCache();
+    void recalculateAttributes(ServerPlayer player);  // 服务端调用，重新计算并应用属性
+
+    int getTotalEquippedCost();
+    int getMaxTotalCost();  // 返回上限，例如 12
+
 }

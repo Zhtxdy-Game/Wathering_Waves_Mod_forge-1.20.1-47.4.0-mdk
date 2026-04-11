@@ -31,6 +31,15 @@ public class ModNetwork
                 UnEquipEchoRequestPacket::encode, UnEquipEchoRequestPacket::new,
                 UnEquipEchoRequestPacket::handle);
 
+        CHANNEL.registerMessage(id++, DeleteEchoRequestPacket.class,
+                DeleteEchoRequestPacket::encode, DeleteEchoRequestPacket::new,
+                DeleteEchoRequestPacket::handle);
+
+        CHANNEL.registerMessage(id++, SyncAttributeCachePacket.class,
+                SyncAttributeCachePacket::encode, SyncAttributeCachePacket::new,
+                SyncAttributeCachePacket::handle);
+
+
 
     }
 

@@ -70,16 +70,29 @@ public class ModCapabilities
     }
 
     @SubscribeEvent
-    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event)
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event)
     {
-        if (event.getEntity() instanceof ServerPlayer serverPlayer)
+        if (event.getEntity() instanceof ServerPlayer player)
         {
-            serverPlayer.getCapability(PLAYER_TERMINAL_DATA).ifPresent(data ->
+            player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
             {
+                data.recalculateAttributes(player);
+                // 触发同步
                 if (data instanceof PlayerTerminalDataImpl impl)
                 {
-                    impl.syncToClient(serverPlayer);
+                    impl.syncToClient(player);
                 }
+            });
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
+    {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
+            {
+                data.recalculateAttributes(player); // 重生后重新应用属性（防止生命值异常）
             });
         }
     }

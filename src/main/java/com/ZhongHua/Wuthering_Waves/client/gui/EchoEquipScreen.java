@@ -1,6 +1,8 @@
 package com.ZhongHua.Wuthering_Waves.client.gui;
 
+import com.ZhongHua.Wuthering_Waves.capability.EchoAttributeCache;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
+import com.ZhongHua.Wuthering_Waves.network.ClientAttributeCache;
 import com.ZhongHua.Wuthering_Waves.network.ClientTerminalDataCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -88,30 +90,28 @@ public class EchoEquipScreen extends Screen
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
+        // 1. 绘制背景和所有已注册的组件（按钮等）
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        int leftX = 20;
-        int startY = 40;
+        // 2. 在固定位置绘制属性加成文字
+        EchoAttributeCache cache = ClientAttributeCache.getCache();
+        int leftX = 20;   // 固定 X 坐标（与之前相同）
+        int startY = 40;          // 固定起始 Y 坐标
         int lineHeight = 20;
-        for (int i = 0; i < ATTRIBUTE_KEYS.size(); i++)
-        {
-            String key = ATTRIBUTE_KEYS.get(i);
-            double value = attributeValues[i];
-            String valueStr = (key.contains("rate") || key.contains("dmg") || key.contains("efficiency") || key.contains("bonus")) ?
-                    String.format("%.1f%%", value * 100) : String.format("%.0f", value);
-            Component line = Component.translatable(key + ".display", Component.translatable(key), valueStr);
-            guiGraphics.drawString(this.font, line, leftX, startY + i * lineHeight, 0xFFFFFF, false);
-        }
+        int y = startY;
 
-
-
-        int midX = this.width / 3;
-        int midWidth = this.width / 3;
-        int midY = this.height / 4;
-        int midHeight = this.height / 2;
-        guiGraphics.renderOutline(midX, midY, midWidth, midHeight, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.literal("3D Model Placeholder"), midX + midWidth/2, midY + midHeight/2, 0xAAAAAA);
+        guiGraphics.drawString(font, Component.literal("属性加成"), leftX, y, 0xFFFFFF);
+        y += lineHeight;
+        guiGraphics.drawString(font, Component.literal(String.format("生命: +%.0f +(%.1f%%)", cache.totalHealthFixed, cache.totalHealthPercent * 100)), leftX, y, 0xFFFFFF);
+        y += lineHeight;
+        guiGraphics.drawString(font, Component.literal(String.format("攻击: +%.0f +(%.1f%%)", cache.totalAttackFixed, cache.totalAttackPercent * 100)), leftX, y, 0xFFFFFF);
+        y += lineHeight;
+        guiGraphics.drawString(font, Component.literal(String.format("防御: +%.0f +(%.1f%%)", cache.totalDefenseFixed, cache.totalDefensePercent * 100)), leftX, y, 0xFFFFFF);
+        y += lineHeight;
+        guiGraphics.drawString(font, Component.literal(String.format("暴击率: %.1f%%", cache.totalCritRate * 100)), leftX, y, 0xFFFFFF);
+        y += lineHeight;
+        guiGraphics.drawString(font, Component.literal(String.format("暴击伤害: +%.1f%%", cache.totalCritDamage * 100)), leftX, y, 0xFFFFFF);
     }
 
     @Override
@@ -133,4 +133,9 @@ public class EchoEquipScreen extends Screen
     }
 
 
+    public void refreshAttributeDisplay()
+    {
+        // 属性显示是在 render 方法中实时从 ClientAttributeCache 读取的，
+        // 所以不需要做任何事，只需要让界面重绘即可。
+    }
 }

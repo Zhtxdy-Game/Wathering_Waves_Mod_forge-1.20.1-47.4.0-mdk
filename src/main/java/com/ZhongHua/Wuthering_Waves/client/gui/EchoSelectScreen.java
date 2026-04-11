@@ -4,14 +4,12 @@ import com.ZhongHua.Wuthering_Waves.capability.ModCapabilities;
 import com.ZhongHua.Wuthering_Waves.capability.PlayerTerminalDataImpl;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.echo.EchoSubStat;
-import com.ZhongHua.Wuthering_Waves.network.ClientTerminalDataCache;
-import com.ZhongHua.Wuthering_Waves.network.EquipEchoRequestPacket;
-import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
-import com.ZhongHua.Wuthering_Waves.network.UnEquipEchoRequestPacket;
+import com.ZhongHua.Wuthering_Waves.network.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class EchoSelectScreen extends Screen
 {
@@ -98,10 +97,10 @@ public class EchoSelectScreen extends Screen
         int screenWidth = this.width;
         int screenHeight = this.height;
 
-        slotButtonsStartX = screenWidth * LEFT_MARGIN_RATIO / 100;
+        slotButtonsStartX = screenWidth * LEFT_MARGIN_RATIO / 100 -70;
         slotButtonsStartY = (screenHeight - (SLOT_BUTTON_HEIGHT * 5 + SLOT_GAP * 4)) / 2;
-        listStartX = slotButtonsStartX + SLOT_BUTTON_WIDTH + (screenWidth / 10);
-        listStartY = (screenHeight - (LIST_CELL_HEIGHT * LIST_ROWS + LIST_GAP_Y * (LIST_ROWS-1))) / 2;
+        listStartX = slotButtonsStartX + SLOT_BUTTON_WIDTH + (screenWidth / 10) -70;
+        listStartY = (screenHeight - (LIST_CELL_HEIGHT * LIST_ROWS + LIST_GAP_Y * (LIST_ROWS-1))) / 2 + 15;
 
         // 创建左侧槽位按钮（动态刷新）
         refreshSlotButtons();
@@ -129,19 +128,21 @@ public class EchoSelectScreen extends Screen
 
         // 装备按钮（不再关闭界面，只更新数据并刷新槽位）
         int rightBtnY = screenHeight - screenHeight / 10 - 30;
-        int rightBtnX = screenWidth - 300;
+        int rightBtnX = screenWidth - 275;
         int btnWidth = 80;
         int gap = 10;
         int totalWidth = btnWidth * 3 + gap * 2;
         int startX = rightBtnX;  // 原来装备按钮的x
+        int row1Y = screenHeight - screenHeight / 10 - 30; // 第一行按钮的 Y
+        int row2Y = row1Y + 30 + gap; // 第二行按钮的 Y
         Button equipBtn = Button.builder(Component.translatable("button.wuthering_waves.equip"), btn ->
         {
             if (selectedEcho != null)
             {
-
                 // 客户端检查是否已被装备
                 int existingSlot = -1;
-                for (int i = 0; i < equippedEcho.size(); i++) {
+                for (int i = 0; i < equippedEcho.size(); i++)
+                {
                     EchoInstance e = equippedEcho.get(i);
                     if (e != null && e.getId().equals(selectedEcho.getId()))
                     {
@@ -156,18 +157,25 @@ public class EchoSelectScreen extends Screen
                     return;
                 }
 
-                // 发送装备请求包，使用 currentSlotIndex
+                // ❗ 新增：客户端 COST 预检查
+                int currentTotal = 0;
+                for (EchoInstance e : equippedEcho)
+                {
+                    if (e != null) currentTotal += e.getCost();
+                }
+                EchoInstance old = equippedEcho.get(currentSlotIndex);
+                int oldCost = (old != null) ? old.getCost() : 0;
+                int newTotal = currentTotal - oldCost + selectedEcho.getCost();
+
+                if (newTotal > 12)
+                {  // 或者从配置读取 getMaxTotalCost()
+                    player.displayClientMessage(Component.literal("总 Cost 超过上限 (12)，无法装备"), true);
+                    return;  // 直接返回，不发送网络包
+                }
+
+                // 发送请求（移除乐观更新，只发送请求）
                 ModNetwork.CHANNEL.sendToServer(new EquipEchoRequestPacket(currentSlotIndex, selectedEcho));
-                // 立即更新本地列表（乐观更新）
-                equippedEcho.set(currentSlotIndex, selectedEcho);
-                // 刷新槽位按钮显示
-                refreshSlotButtons();
-                // 更新右侧显示为刚装备的声骸
-                displayEcho = selectedEcho;
-                // 可选：清空列表选中状态
-                selectedEcho = null;
-                // 提示装备成功（可选）
-                // 不需要关闭界面，让玩家可以继续装备其他槽位
+
             }
         }).bounds(startX, rightBtnY, btnWidth, 30).build();
 
@@ -197,9 +205,54 @@ public class EchoSelectScreen extends Screen
 
         Button cultivateBtn = Button.builder(Component.translatable("button.wuthering_waves.cultivate"), btn ->
         {}).bounds(startX + (btnWidth + gap) * 2, rightBtnY, btnWidth, 30).build();
+        // 第一行：装备、卸下、培养
         this.addRenderableWidget(equipBtn);
         this.addRenderableWidget(unEquipBtn);
         this.addRenderableWidget(cultivateBtn);
+
+        // 第二行：删除按钮（放在卸下按钮正下方）
+        Button deleteBtn = Button.builder(Component.translatable("button.wuthering_waves.delete"), btn ->
+        {
+            if (displayEcho != null)
+            {
+                ConfirmScreen confirmScreen = new ConfirmScreen(
+                        confirmed ->
+                        {
+                            if (confirmed)
+                            {
+                                UUID deletedId = displayEcho.getId();
+
+                                // 发送删除请求
+                                ModNetwork.CHANNEL.sendToServer(new DeleteEchoRequestPacket(deletedId));
+
+                                // 本地乐观更新
+                                allEcho.removeIf(echo -> echo.getId().equals(deletedId));
+                                if (displayEcho != null && displayEcho.getId().equals(deletedId))
+                                {
+                                    displayEcho = null;
+                                }
+                                if (selectedEcho != null && selectedEcho.getId().equals(deletedId))
+                                {
+                                    selectedEcho = null;
+                                }
+
+                                // 关键：删除后返回到 EchoSelectScreen（刷新数据）
+                                Minecraft.getInstance().setScreen(
+                                        new EchoSelectScreen(currentSlotIndex, equippedEcho, currentPage)
+                                );
+                            } else
+                            {
+                                // 用户取消删除，也要返回原界面
+                                Minecraft.getInstance().setScreen(EchoSelectScreen.this);
+                            }
+                        },
+                        Component.literal("确认删除"),
+                        Component.literal("确定要删除声骸 " + displayEcho.getName() + " 吗？")
+                );
+                Minecraft.getInstance().setScreen(confirmScreen);
+            }
+        }).bounds(startX + btnWidth + gap, row2Y, btnWidth, 30).build();
+        this.addRenderableWidget(deleteBtn);
 
         // 添加返回按钮（右上角）
         int backBtnX = screenWidth - 60;
@@ -213,9 +266,11 @@ public class EchoSelectScreen extends Screen
     }
 
     // 刷新左侧五个槽位按钮
-    private void refreshSlotButtons() {
+    private void refreshSlotButtons()
+    {
         // 移除旧的槽位按钮
-        for (Button btn : slotButtons) {
+        for (Button btn : slotButtons)
+        {
             this.removeWidget(btn);
         }
         slotButtons.clear();
@@ -284,17 +339,23 @@ public class EchoSelectScreen extends Screen
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
+
         Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
-            {
-                String countStr = data.getCurrentCount() + "/" + data.getMaxCapacity();
-                guiGraphics.drawString(this.font, Component.literal(countStr), listStartX, listStartY - 20, 0xFFFFFF);
-            });
+        if (player != null)
+        {
+            // 显示已有声骸数量 / 容量
+            int currentCount = ClientTerminalDataCache.getEchoList().size();
+            int maxCapacity = ClientTerminalDataCache.getMaxCapacity();
+            String countStr = currentCount + "/" + maxCapacity;
+            guiGraphics.drawString(this.font, Component.literal(countStr), listStartX, listStartY - 20, 0xFFFFFF);
+
+            int totalCost = ClientTerminalDataCache.getTotalEquippedCost();
+            int maxCost = 12;
+            guiGraphics.drawString(font, Component.literal("Cost: " + totalCost + "/" + maxCost), listStartX -80, listStartY -20, 0xFFFFFF);
         }
 
         // 右侧详情区域
-        int rightX = this.width * 2 / 3 + 20;
+        int rightX = this.width * 2 / 3 + 100;
         int rightY = 40;
         int lineHeight = 20;
 
@@ -328,7 +389,7 @@ public class EchoSelectScreen extends Screen
             // 未装备任何声骸
             guiGraphics.drawString(this.font, Component.literal("未装备"), rightX, rightY, 0xAAAAAA);
         }
-
+        //3D模型
         int midX = this.width / 3;
         int midWidth = this.width / 3;
         int midY = this.height / 4;
@@ -360,13 +421,14 @@ public class EchoSelectScreen extends Screen
         }
 
         @Override
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
+        {
             // 绘制背景
-            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, 0xFF444444);
+            guiGraphics.fill(this.getX() , this.getY() , this.getX() + this.width , this.getY() + this.height, 0xFF444444);
             // 绘制图标
-            guiGraphics.blit(DEFAULT_ICON, this.getX() + 5, this.getY() + 5, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(DEFAULT_ICON, this.getX() , this.getY() + 5, 0, 0, 16, 16, 16, 16);
             // 绘制名称和等级
-            guiGraphics.drawString(Minecraft.getInstance().font, this.getMessage(), this.getX() + 5, this.getY() + 25, 0xFFFFFF);
+            guiGraphics.drawString(Minecraft.getInstance().font, this.getMessage(), this.getX() , this.getY() + 25, 0xFFFFFF);
 
             // 检查是否已装备
             int equippedSlot = -1;
@@ -388,7 +450,8 @@ public class EchoSelectScreen extends Screen
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
+        public void onClick(double mouseX, double mouseY)
+        {
             onPress.run();
         }
 
@@ -403,10 +466,15 @@ public class EchoSelectScreen extends Screen
         this.equippedEcho.clear();
         this.equippedEcho.addAll(ClientTerminalDataCache.getEquippedEchoes());
         while (this.equippedEcho.size() < 5) this.equippedEcho.add(null);
-        this.displayEcho = (currentSlotIndex >= 0 && currentSlotIndex < equippedEcho.size())
-                ? equippedEcho.get(currentSlotIndex) : null;
+        // 重新计算当前显示的声骸
+        if (currentSlotIndex >= 0 && currentSlotIndex < equippedEcho.size())
+        {
+            this.displayEcho = equippedEcho.get(currentSlotIndex);
+        } else {
+            this.displayEcho = null;
+        }
         refreshSlotButtons();
-        refreshListButtons(); // 刷新列表，更新“已装备”显示
+        refreshListButtons();// 刷新列表，更新“已装备”显示
     }
 
 }

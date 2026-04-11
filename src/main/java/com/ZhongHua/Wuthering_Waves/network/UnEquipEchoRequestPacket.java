@@ -37,6 +37,7 @@ public class UnEquipEchoRequestPacket
                     data.unequipEcho(slotIndex);
                     if (data instanceof PlayerTerminalDataImpl impl)
                     {
+                        impl.recalculateAttributes(player);
                         impl.syncToClient(player);
                     }
                 });

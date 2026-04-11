@@ -26,6 +26,20 @@ public class ClientTerminalDataCache
         maxCapacity = dummy.getMaxCapacity();
     }
 
+    // ClientTerminalDataCache.java
+    public static int getTotalEquippedCost()
+    {
+        int total = 0;
+        for (EchoInstance echo : equippedEchoes)
+        {
+            if (echo != null)
+            {
+                total += echo.getCost();
+            }
+        }
+        return total;
+    }
+
     public static List<EchoInstance> getEchoList() { return echoList; }
     public static List<EchoInstance> getEquippedEchoes() { return equippedEchoes; }
     public static int getMaxCapacity() { return maxCapacity; }
