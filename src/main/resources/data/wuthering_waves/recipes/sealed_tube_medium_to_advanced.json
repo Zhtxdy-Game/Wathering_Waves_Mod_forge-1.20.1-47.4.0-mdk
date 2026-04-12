@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "wuthering_waves:sealed_tube_medium" },
+    { "item": "wuthering_waves:sealed_tube_medium" },
+    { "item": "wuthering_waves:sealed_tube_medium" },
+    { "item": "wuthering_waves:sealed_tube_medium" },
+    { "item": "wuthering_waves:sealed_tube_medium" }
+  ],
+  "result": {
+    "item": "wuthering_waves:sealed_tube_advanced"
+  }
+}

@@ -42,7 +42,8 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         if (cachedMaxCapacity == -1)
         {
             // 确保 Config.SPEC 已加载，如果没有则使用默认值100
-            try {
+            try
+            {
                 cachedMaxCapacity = Config.TERMINAL_MAX_CAPACITY.get();
             } catch (Exception e)
             {
@@ -133,8 +134,10 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
     }
 
     @Override
-    public void unequipEcho(int slot) {
-        if (slot >= 0 && slot < 5) {
+    public void unequipEcho(int slot)
+    {
+        if (slot >= 0 && slot < 5)
+        {
             equippedEchoes.set(slot, null);
         }
     }
@@ -145,7 +148,8 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         CompoundTag tag = new CompoundTag();
         // 保存 echoList
         ListTag listTag = new ListTag();
-        for (EchoInstance echo : echoList) {
+        for (EchoInstance echo : echoList)
+        {
             listTag.add(echo.toNBT());
         }
         tag.put("EchoList", listTag);
@@ -154,9 +158,11 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         ListTag equipTag = new ListTag();
         for (EchoInstance echo : equippedEchoes)
         {
-            if (echo != null) {
+            if (echo != null)
+            {
                 equipTag.add(echo.toNBT());
-            } else {
+            } else
+            {
                 equipTag.add(new CompoundTag());
             }
         }

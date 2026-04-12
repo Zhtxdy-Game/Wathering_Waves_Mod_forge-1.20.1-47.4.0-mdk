@@ -15,8 +15,7 @@ public class TerminalTestCommand
     {
         dispatcher.register(Commands.literal("wutest")
                 .then(Commands.literal("give")
-                        .executes(TerminalTestCommand::giveEcho)
-                )
+                        .executes(TerminalTestCommand::giveEcho))
         );
     }
 
@@ -27,7 +26,7 @@ public class TerminalTestCommand
         {
             player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
             {
-
+                //暂时没有需要的命令
             });
             return 1;
         }

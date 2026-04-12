@@ -89,7 +89,8 @@ public class ModCapabilities
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
     {
-        if (event.getEntity() instanceof ServerPlayer player) {
+        if (event.getEntity() instanceof ServerPlayer player)
+        {
             player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
             {
                 data.recalculateAttributes(player); // 重生后重新应用属性（防止生命值异常）

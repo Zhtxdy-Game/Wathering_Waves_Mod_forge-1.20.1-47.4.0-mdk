@@ -24,7 +24,8 @@ public class EchoSubStat
         return tag;
     }
 
-    public static EchoSubStat fromNBT(CompoundTag tag) {
+    public static EchoSubStat fromNBT(CompoundTag tag)
+    {
         return new EchoSubStat(tag.getString("Name"), tag.getDouble("Value"));
     }
 }

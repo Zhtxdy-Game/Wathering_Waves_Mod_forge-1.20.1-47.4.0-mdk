@@ -41,13 +41,15 @@ public class HuimingTerminalItem extends Item
                     }
 
                     // 根据结晶的信息生成一个随机属性的 EchoInstance
-                    EchoInstance echo = EchoInstance.createRandom(
+                    EchoInstance echo = EchoInstance.createRandom
+                            (
                             crystal.getEchoDisplayName(),
                             crystal.getCost(),
                             crystal.getPossibleMainStats()
                     );
 
-                    if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+                    if (!level.isClientSide && player instanceof ServerPlayer serverPlayer)
+                    {
 
                             if (data.addEcho(echo))
                             {
@@ -66,7 +68,8 @@ public class HuimingTerminalItem extends Item
         }
 
         // 没有副手声骸结晶时，打开终端主界面（仅客户端）
-        if (level.isClientSide) {
+        if (level.isClientSide)
+        {
             Minecraft.getInstance().setScreen(new TerminalScreen());
         }
         return InteractionResultHolder.success(player.getItemInHand(hand));

@@ -4,10 +4,11 @@ import com.ZhongHua.Wuthering_Waves.item.AbstractEchoCrystalItem;
 
 import java.util.List;
 
-public class CrownlessEchoCrystal extends AbstractEchoCrystalItem
+public class CrownlessEcho extends AbstractEchoCrystalItem
 {
 
-    public CrownlessEchoCrystal(Properties properties) {
+    public CrownlessEcho(Properties properties)
+    {
         super(properties);
     }
 

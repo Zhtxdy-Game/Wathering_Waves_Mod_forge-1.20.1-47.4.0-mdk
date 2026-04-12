@@ -4,7 +4,7 @@
 
   "entity.wuthering_waves.crownless": "Crownless",
   "item.wuthering_waves.crownless_spawn_egg": "Crownless Spawn Egg",
-  "item.wuthering_waves.crownless_echo_crystal": "Crownless_Echo_Crystal",
+  "item.wuthering_waves.crownless_echo": "Crownless Echo",
 
   "Terminal_UI_Text_English": "HuiMing Terminal is initializing...",
   "button.wuthering_waves.echo": "Echo",
@@ -49,8 +49,15 @@
   "button.wuthering_waves.cultivate": "Cultivate",
   "button.wuthering_waves.unequip": "Unequip",
   "button.wuthering_waves.delete": "Delete",
+  "button.wuthering_waves.upgrade": "Upgrade",
+  "button.wuthering_waves.upgrade_all": "Upgrade All",
 
+  "button.wuthering_waves.placeholder": "Coming Soon",
 
-  "button.wuthering_waves.placeholder": "Coming Soon"
+  "item.wuthering_waves.tuner": "Tuner",
+  "item.wuthering_waves.sealed_tube_basic": "Basic Sealed Tube",
+  "item.wuthering_waves.sealed_tube_medium": "Medium Sealed Tube",
+  "item.wuthering_waves.sealed_tube_advanced": "Advanced Sealed Tube",
+  "item.wuthering_waves.sealed_tube_premium": "Premium Sealed Tube"
 
 }

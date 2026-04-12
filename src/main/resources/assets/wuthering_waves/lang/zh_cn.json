@@ -4,7 +4,7 @@
 
   "entity.wuthering_waves.crownless": "无冠者",
   "item.wuthering_waves.crownless_spawn_egg": "无冠者的刷怪蛋",
-  "item.wuthering_waves.crownless_echo_crystal": "无冠者声骸结晶",
+  "item.wuthering_waves.crownless_echo": "无冠者声骸",
 
   "Terminal_UI_Text_Chinese": "终端正在初始化...",
   "button.wuthering_waves.echo": "声骸",
@@ -49,7 +49,15 @@
   "button.wuthering_waves.cultivate": "培养",
   "button.wuthering_waves.unequip": "卸下",
   "button.wuthering_waves.delete": "删除",
+  "button.wuthering_waves.upgrade": "升级",
+  "button.wuthering_waves.upgrade_all": "一键升级",
 
-  "button.wuthering_waves.placeholder": "待开发"
+  "button.wuthering_waves.placeholder": "待开发",
+
+  "item.wuthering_waves.tuner": "调谐器",
+  "item.wuthering_waves.sealed_tube_basic": "初级密音筒",
+  "item.wuthering_waves.sealed_tube_medium": "中级密音筒",
+  "item.wuthering_waves.sealed_tube_advanced": "高级密音筒",
+  "item.wuthering_waves.sealed_tube_premium": "特级密音筒"
 
 }

@@ -229,7 +229,8 @@ public class EchoInstance
 
     // ====================== NBT 序列化 ======================
 
-    public CompoundTag toNBT() {
+    public CompoundTag toNBT()
+    {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("Id", this.id);
         tag.putString("Name", name);
@@ -240,7 +241,8 @@ public class EchoInstance
         tag.putDouble("MainStatValue", mainStatValue);
 
         ListTag subList = new ListTag();
-        for (EchoSubStat sub : subStats) {
+        for (EchoSubStat sub : subStats)
+        {
             subList.add(sub.toNBT());
         }
         tag.put("SubStats", subList);

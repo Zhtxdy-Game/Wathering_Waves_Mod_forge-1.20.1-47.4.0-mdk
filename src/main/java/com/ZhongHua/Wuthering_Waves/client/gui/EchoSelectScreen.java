@@ -5,6 +5,7 @@ import com.ZhongHua.Wuthering_Waves.capability.PlayerTerminalDataImpl;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.echo.EchoSubStat;
 import com.ZhongHua.Wuthering_Waves.network.*;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 
 public class EchoSelectScreen extends Screen
 {
@@ -157,7 +159,7 @@ public class EchoSelectScreen extends Screen
                     return;
                 }
 
-                // ❗ 新增：客户端 COST 预检查
+                // 客户端 COST 预检查
                 int currentTotal = 0;
                 for (EchoInstance e : equippedEcho)
                 {
@@ -179,7 +181,8 @@ public class EchoSelectScreen extends Screen
             }
         }).bounds(startX, rightBtnY, btnWidth, 30).build();
 
-        Button unEquipBtn = Button.builder(Component.translatable("button.wuthering_waves.unequip"), btn -> {
+        Button unEquipBtn = Button.builder(Component.translatable("button.wuthering_waves.unequip"), btn ->
+        {
             // 卸下逻辑
             if (currentSlotIndex >= 0 && currentSlotIndex < equippedEcho.size())
             {
@@ -204,7 +207,10 @@ public class EchoSelectScreen extends Screen
         }).bounds(startX + btnWidth + gap, rightBtnY, btnWidth, 30).build();
 
         Button cultivateBtn = Button.builder(Component.translatable("button.wuthering_waves.cultivate"), btn ->
-        {}).bounds(startX + (btnWidth + gap) * 2, rightBtnY, btnWidth, 30).build();
+        {
+            Minecraft.getInstance().setScreen(new EchoCultivateScreen(slotIndex, equippedEcho, currentPage));
+        }).bounds(rightBtnX + (btnWidth + gap) * 2, rightBtnY, btnWidth, 30).build();
+
         // 第一行：装备、卸下、培养
         this.addRenderableWidget(equipBtn);
         this.addRenderableWidget(unEquipBtn);
@@ -257,7 +263,8 @@ public class EchoSelectScreen extends Screen
         // 添加返回按钮（右上角）
         int backBtnX = screenWidth - 60;
         int backBtnY = 10;
-        Button backButton = Button.builder(Component.literal("←"), btn -> {
+        Button backButton = Button.builder(Component.literal("←"), btn ->
+        {
             Minecraft.getInstance().setScreen(new EchoEquipScreen());
         }).bounds(backBtnX, backBtnY, 40, 20).build();
         this.addRenderableWidget(backButton);
@@ -276,7 +283,8 @@ public class EchoSelectScreen extends Screen
         slotButtons.clear();
 
         // 重新添加五个槽位按钮
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++)
+        {
             final int idx = i;
             int y = slotButtonsStartY + i * (SLOT_BUTTON_HEIGHT + SLOT_GAP);
             EchoInstance echo = (idx < equippedEcho.size()) ? equippedEcho.get(idx) : null;
@@ -339,7 +347,6 @@ public class EchoSelectScreen extends Screen
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-
         Player player = Minecraft.getInstance().player;
         if (player != null)
         {
@@ -367,22 +374,32 @@ public class EchoSelectScreen extends Screen
             // 主属性
             String mainStatDisplay = String.format("%s: %.1f%%", displayEcho.getMainStat(), displayEcho.getMainStatValue() * 100);
             guiGraphics.drawString(this.font, Component.literal(mainStatDisplay), rightX, rightY + lineHeight * 3, 0xFFFFFF);
-            // 副属性（显示全部，但已解锁高亮）
-            List<EchoSubStat> allSubs = displayEcho.getAllSubStats();
-            for (int i = 0; i < allSubs.size(); i++)
+            // 副属性 - 只显示已解锁的（营造盲盒感）
+            List<EchoSubStat> activeSubs = displayEcho.getActiveSubStats(); // 只获取已解锁的
+            if (!activeSubs.isEmpty())
             {
-                EchoSubStat sub = allSubs.get(i);
-                String valueStr;
-                if (sub.getName().contains("固定"))
+                guiGraphics.drawString(this.font, Component.literal("辅音属性:"),
+                        rightX, rightY + lineHeight * 4, 0xAAAAAA);
+
+                for (int i = 0; i < activeSubs.size(); i++)
                 {
-                    valueStr = String.format("%.0f", sub.getValue());
-                } else
-                {
-                    valueStr = String.format("%.1f%%", sub.getValue() * 100);
+                    EchoSubStat sub = activeSubs.get(i);
+                    String valueStr;
+                    if (sub.getName().contains("固定"))
+                    {
+                        valueStr = String.format("%.0f", sub.getValue());
+                    } else
+                    {
+                        valueStr = String.format("%.1f%%", sub.getValue() * 100);
+                    }
+                    String text = "• " + sub.getName() + " " + valueStr;
+                    // 已解锁的使用白色高亮显示
+                    guiGraphics.drawString(this.font, Component.literal(text), rightX + 10, rightY + lineHeight * (5 + i), 0xFFFFFF);
                 }
-                String text = sub.getName() + " " + valueStr;
-                int color = (i < displayEcho.getLevel()) ? 0xFFFFFF : 0x888888;
-                guiGraphics.drawString(this.font, Component.literal(text), rightX, rightY + lineHeight * (4 + i), color);
+            } else
+            {
+                // 0级时显示提示
+                guiGraphics.drawString(this.font, Component.literal("辅音属性: 未解锁"), rightX, rightY + lineHeight * 4, 0x666666);
             }
         } else
         {
@@ -410,7 +427,8 @@ public class EchoSelectScreen extends Screen
         private final EchoInstance echo;
         private final Runnable onPress;
         private final List<EchoInstance> equippedEcho; // 外部装备列表引用
-        private static final ResourceLocation DEFAULT_ICON = new ResourceLocation("minecraft", "textures/item/diamond.png");
+        // 移除静态默认图标，改为动态获取
+        private final ResourceLocation iconLocation;
 
         public EchoListButton(int x, int y, int width, int height, EchoInstance echo, Runnable onPress, List<EchoInstance> equippedEcho)
         {
@@ -418,6 +436,8 @@ public class EchoSelectScreen extends Screen
             this.echo = echo;
             this.onPress = onPress;
             this.equippedEcho = equippedEcho;
+            // 根据声骸名称获取对应图标
+            this.iconLocation = EchoIconManager.getIcon(echo.getName());
         }
 
         @Override
@@ -425,8 +445,10 @@ public class EchoSelectScreen extends Screen
         {
             // 绘制背景
             guiGraphics.fill(this.getX() , this.getY() , this.getX() + this.width , this.getY() + this.height, 0xFF444444);
-            // 绘制图标
-            guiGraphics.blit(DEFAULT_ICON, this.getX() , this.getY() + 5, 0, 0, 16, 16, 16, 16);
+            // 绘制声骸专属图标（使用自定义纹理）
+            RenderSystem.setShaderTexture(0, iconLocation);
+            guiGraphics.blit(iconLocation, this.getX() , this.getY() + 5,
+                    0, 0, 16, 16, 16, 16);
             // 绘制名称和等级
             guiGraphics.drawString(Minecraft.getInstance().font, this.getMessage(), this.getX() , this.getY() + 25, 0xFFFFFF);
 
@@ -456,7 +478,8 @@ public class EchoSelectScreen extends Screen
         }
 
         @Override
-        public void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {
+        public void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput)
+        {
             this.defaultButtonNarrationText(narrationElementOutput);
         }
     }

@@ -28,7 +28,12 @@ public class ModCreativeModeTabs
                         // 将你的所有模组物品添加到这个标签中
                         output.accept(ModItems.HUIMING_TERMINAL.get());
                         output.accept(ModItems.CROWNLESS_SPAWN_EGG.get());
-                        output.accept(ModItems.CROWNLESS_ECHO_CRYSTAL.get());
+                        output.accept(ModItems.CROWNLESS_ECHO.get());
+                        output.accept(ModItems.TUNER.get());
+                        output.accept(ModItems.SEALED_TUBE_BASIC.get());
+                        output.accept(ModItems.SEALED_TUBE_MEDIUM.get());
+                        output.accept(ModItems.SEALED_TUBE_ADVANCED.get());
+                        output.accept(ModItems.SEALED_TUBE_PREMIUM.get());
                         // 以后如果有更多物品，继续在这里添加
                     })
                     .build()

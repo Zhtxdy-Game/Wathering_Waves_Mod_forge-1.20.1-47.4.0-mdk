@@ -71,7 +71,8 @@ public class EchoEquipScreen extends Screen
         int availableHeight = screenHeight - topMargin - topMargin;
         int gap = (availableHeight - buttonHeight * 5) / 4;
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++)
+        {
             final int slotIndex = i;
             int y = topMargin + i * (buttonHeight + gap);
             EchoInstance echo = equippedEcho.get(i);

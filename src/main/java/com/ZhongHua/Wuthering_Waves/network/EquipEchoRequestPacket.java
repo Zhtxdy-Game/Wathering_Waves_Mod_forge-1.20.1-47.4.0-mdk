@@ -96,7 +96,8 @@ public class EquipEchoRequestPacket
 
                         // 新增：发送拒绝包，让客户端刷新（防止客户端显示错误）
                         // 或者直接发送当前正确的装备列表给客户端强制同步
-                        if (data instanceof PlayerTerminalDataImpl impl) {
+                        if (data instanceof PlayerTerminalDataImpl impl)
+                        {
                             impl.syncToClient(player);  // 强制同步正确状态
                         }
                         return;

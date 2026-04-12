@@ -11,7 +11,8 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 
-public class TerminalScreen extends Screen {
+public class TerminalScreen extends Screen
+{
     private static final Component TITLE = Component.literal("Terminal");
     private static final int BG_WIDTH = 210;
     private static final int BG_HEIGHT = 180;
@@ -33,8 +34,8 @@ public class TerminalScreen extends Screen {
         if (!showButtons)
         {
             tickCounter++;
-            if (tickCounter >= 40)
-            { // 2秒 = 40 ticks (20 ticks/秒)
+            if (tickCounter >= 20)
+            { // 1秒 = 20 ticks (20 ticks/秒)
                 showButtons = true;
                 initButtons(); // 初始化按钮
             }

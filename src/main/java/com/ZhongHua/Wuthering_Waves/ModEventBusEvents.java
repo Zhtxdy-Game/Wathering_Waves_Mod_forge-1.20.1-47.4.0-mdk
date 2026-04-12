@@ -12,6 +12,6 @@ public class ModEventBusEvents
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event)
     {
-        event.put(ModEntities.CROWNLESS.get(), CrownlessEntity.createAttributes().build());
+        event.put(ModEntities.CROWNLESS.get(), CrownlessEntity.createAttributes().build());//注册自定义实体"无冠者"
     }
 }
