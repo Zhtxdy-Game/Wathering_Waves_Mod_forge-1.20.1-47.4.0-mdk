@@ -1,5 +1,6 @@
 package com.ZhongHua.Wuthering_Waves.network;
 
+import com.ZhongHua.Wuthering_Waves.client.gui.EchoCultivateScreen;
 import com.ZhongHua.Wuthering_Waves.client.gui.EchoEquipScreen;
 import com.ZhongHua.Wuthering_Waves.client.gui.EchoSelectScreen;
 import net.minecraft.client.Minecraft;
@@ -53,6 +54,9 @@ public class SyncTerminalDataPacket
             } else if (screen instanceof EchoEquipScreen)
             {
                 ((EchoEquipScreen) screen).refreshFromCache();
+            }else if (screen instanceof EchoCultivateScreen cultivateScreen)
+            {
+                cultivateScreen.refreshFromCache();   // 新增
             }
         });
         ctx.get().setPacketHandled(true);

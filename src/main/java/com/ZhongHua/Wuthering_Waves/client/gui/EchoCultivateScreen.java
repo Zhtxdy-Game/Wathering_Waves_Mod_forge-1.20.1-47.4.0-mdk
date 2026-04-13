@@ -5,6 +5,9 @@ import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.echo.EchoSubStat;
 import com.ZhongHua.Wuthering_Waves.item.ModItems;
 import com.ZhongHua.Wuthering_Waves.network.ClientTerminalDataCache;
+import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
+import com.ZhongHua.Wuthering_Waves.network.UpgradeEchoRequestPacket;
+import com.ZhongHua.Wuthering_Waves.network.UpgradeEchoToMaxRequestPacket;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class EchoCultivateScreen extends Screen
 {
@@ -61,6 +65,7 @@ public class EchoCultivateScreen extends Screen
 
     // 按钮
     private Button upgradeBtn, upgradeAllBtn, backBtn;
+
 
     // 材料物品列表
     private static final ItemStack[] MATERIALS =
@@ -158,19 +163,23 @@ public class EchoCultivateScreen extends Screen
         int btnGap = 10;
         int btnStartX = this.width - 200;  // 右侧区域
         int btnStartY = this.height - 60;
+
+        // 单级升级按钮
         upgradeBtn = Button.builder(Component.translatable("button.wuthering_waves.upgrade"), btn ->
         {
-            // 升级逻辑（待实现）
             if (selectedEcho != null)
             {
-                System.out.println("升级声骸: " + selectedEcho.getName());
-                // TODO: 发送升级请求包
+                ModNetwork.CHANNEL.sendToServer(new UpgradeEchoRequestPacket(selectedEcho.getId()));
             }
         }).bounds(btnStartX, btnStartY, btnWidth, btnHeight).build();
+
+        // 一键升级按钮
         upgradeAllBtn = Button.builder(Component.translatable("button.wuthering_waves.upgrade_all"), btn ->
         {
-            // 一键升级逻辑（待实现）
-            System.out.println("一键升级");
+            if (selectedEcho != null)
+            {
+                ModNetwork.CHANNEL.sendToServer(new UpgradeEchoToMaxRequestPacket(selectedEcho.getId(), false));
+            }
         }).bounds(btnStartX + btnWidth + btnGap, btnStartY, btnWidth, btnHeight).build();
         this.addRenderableWidget(upgradeBtn);
         this.addRenderableWidget(upgradeAllBtn);
@@ -284,6 +293,9 @@ public class EchoCultivateScreen extends Screen
         {
             guiGraphics.drawString(this.font, Component.literal("未选中任何声骸"), rightX, rightY, 0xAAAAAA);
         }
+
+
+
     }
 
     private void renderMaterialSlots(GuiGraphics guiGraphics)
@@ -373,4 +385,31 @@ public class EchoCultivateScreen extends Screen
             this.defaultButtonNarrationText(narrationElementOutput);
         }
     }
+
+    public void refreshFromCache()
+    {
+        // 刷新装备槽位数据
+        this.equippedEcho = new ArrayList<>(ClientTerminalDataCache.getEquippedEchoes());
+        while (this.equippedEcho.size() < 5) this.equippedEcho.add(null);
+        // 刷新声骸列表
+        this.allEcho = new ArrayList<>(ClientTerminalDataCache.getEchoList());
+        // 重新计算页数
+        totalPages = (int) Math.ceil(allEcho.size() / (double)(LIST_ROWS * LIST_COLS));
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage >= totalPages) currentPage = totalPages - 1;
+        if (currentPage < 0) currentPage = 0;
+        // 刷新当前选中的声骸（根据ID匹配）
+        if (selectedEcho != null)
+        {
+            EchoInstance newEcho = allEcho.stream()
+                    .filter(e -> e.getId().equals(selectedEcho.getId()))
+                    .findFirst().orElse(null);
+            selectedEcho = newEcho;
+        }
+        // 刷新UI组件
+        refreshSlotButtons();
+        refreshListButtons();
+        // 材料栏数量会在下一帧 render 中自动从背包读取，无需额外处理
+    }
+
 }

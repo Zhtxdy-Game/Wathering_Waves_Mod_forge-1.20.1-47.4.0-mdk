@@ -39,7 +39,17 @@ public class ModNetwork
                 SyncAttributeCachePacket::encode, SyncAttributeCachePacket::new,
                 SyncAttributeCachePacket::handle);
 
+        CHANNEL.registerMessage(id++, UpgradeEchoRequestPacket.class,
+                UpgradeEchoRequestPacket::encode, UpgradeEchoRequestPacket::new,
+                UpgradeEchoRequestPacket::handle);
 
+        CHANNEL.registerMessage(id++, UpgradeEchoToMaxRequestPacket.class,
+                UpgradeEchoToMaxRequestPacket::encode, UpgradeEchoToMaxRequestPacket::new,
+                UpgradeEchoToMaxRequestPacket::handle);
+
+        CHANNEL.registerMessage(id++, UpgradeConfirmPacket.class,
+                UpgradeConfirmPacket::encode, UpgradeConfirmPacket::new,
+                UpgradeConfirmPacket::handle);
 
     }
 

@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface IPlayerTerminalData
 {
@@ -27,5 +28,9 @@ public interface IPlayerTerminalData
 
     int getTotalEquippedCost();
     int getMaxTotalCost();  // 返回上限，例如 12
+    //升级声骸相关
+    EchoInstance getEchoById(UUID id);
+    boolean upgradeEcho(ServerPlayer player, EchoInstance echo);
+    void upgradeEchoToMax(ServerPlayer player, EchoInstance echo, boolean confirmed);
 
 }
