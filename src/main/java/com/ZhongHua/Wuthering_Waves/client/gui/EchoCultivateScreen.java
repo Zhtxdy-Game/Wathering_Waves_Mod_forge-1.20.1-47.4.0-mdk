@@ -88,6 +88,11 @@ public class EchoCultivateScreen extends Screen
         while (this.equippedEcho.size() < 5) this.equippedEcho.add(null);
         this.allEcho = new ArrayList<>(ClientTerminalDataCache.getEchoList());
     }
+    //无参版本
+    public EchoCultivateScreen()
+    {
+        this(0, new ArrayList<>(), 0); // 默认参数
+    }
 
     @Override
     protected void init()
