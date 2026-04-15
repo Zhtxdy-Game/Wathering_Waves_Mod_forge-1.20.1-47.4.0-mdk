@@ -1,9 +1,9 @@
 package com.ZhongHua.Wuthering_Waves;
 
+import com.ZhongHua.Wuthering_Waves.client.model.*;
+import com.ZhongHua.Wuthering_Waves.client.renderer.*;
 import com.ZhongHua.Wuthering_Waves.item.ModCreativeModeTabs;
 import com.ZhongHua.Wuthering_Waves.item.ModItems;
-import com.ZhongHua.Wuthering_Waves.client.model.CrownlessModel;
-import com.ZhongHua.Wuthering_Waves.client.renderer.CrownlessRenderer;
 import com.ZhongHua.Wuthering_Waves.command.TerminalTestCommand;
 import com.ZhongHua.Wuthering_Waves.entity.ModEntities;
 import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
@@ -97,6 +97,10 @@ public class Wuthering_WavesMod
             event.enqueueWork(() ->
             {
                 EntityRenderers.register(ModEntities.CROWNLESS.get(), CrownlessRenderer::new);
+                EntityRenderers.register(ModEntities.BABY_ROSE_SHROOM.get(), BabyRoseshroomRenderer::new);
+                EntityRenderers.register(ModEntities.Havoc_Prism.get(), HavocPrismRenderer::new);
+                EntityRenderers.register(ModEntities.ROSE_SHROOM.get(), RoseshroomRenderer::new);
+                EntityRenderers.register(ModEntities.HAVOC_DREADMANE.get(), HavocDreadmaneRenderer::new);
             });
         }
 
@@ -104,7 +108,14 @@ public class Wuthering_WavesMod
         public static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event)
         {
             event.registerLayerDefinition(CrownlessRenderer.LAYER_LOCATION, CrownlessModel::createBodyLayer);
+            event.registerLayerDefinition(BabyRoseshroomRenderer.LAYER_LOCATION, BabyRoseshroomModel::createBodyLayer);
+            event.registerLayerDefinition(HavocPrismRenderer.LAYER_LOCATION, HavocPrismModel::createBodyLayer);
+            event.registerLayerDefinition(RoseshroomRenderer.LAYER_LOCATION, RoseshroomModel::createBodyLayer);
+            event.registerLayerDefinition(HavocDreadmaneRenderer.LAYER_LOCATION, HavocDreadmaneModel::createBodyLayer);
         }
+
+
+
     }
 
 }

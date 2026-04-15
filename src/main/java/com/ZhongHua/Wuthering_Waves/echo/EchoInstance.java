@@ -1,5 +1,6 @@
 package com.ZhongHua.Wuthering_Waves.echo;
 
+import com.ZhongHua.Wuthering_Waves.config.SetBonusManager;
 import net.minecraft.nbt.*;
 import java.util.*;
 import java.util.UUID;
@@ -15,10 +16,11 @@ public class EchoInstance
     private final List<EchoSubStat> subStats;
     private final UUID id;  // final，必须在构造时确定
     private Map<String, Double> stats;  // 属性映射
+    private String setName;  // 所属套装ID，可能为null（散件）
 
     // ====================== 唯一的私有主构造器 ======================
     private EchoInstance(String name, int level, int cost, String mainStat,
-                         double maxMainStatValue, List<EchoSubStat> subStats, UUID id)
+                         double maxMainStatValue, List<EchoSubStat> subStats, UUID id,String setName)
     {
         this.id = Objects.requireNonNull(id, "UUID cannot be null");
         this.name = name;
@@ -28,6 +30,8 @@ public class EchoInstance
         this.maxMainStatValue = maxMainStatValue;
         this.subStats = subStats != null ? subStats : new ArrayList<>();
         this.stats = new HashMap<>(); // 确保初始化
+        // ... 原有初始化 ...
+        this.setName = SetBonusManager.getSetIdByEcho(name); // 自动查询套装
         recalcMainStat(); // 计算当前等级的主属性值
         buildStats(); // 初始构建属性映射
     }
@@ -120,6 +124,8 @@ public class EchoInstance
         String mainStat = tag.getString("MainStat");
         double maxMainStatValue = tag.getDouble("MaxMainStatValue");
 
+
+
         // 读取副属性
         List<EchoSubStat> subStats = new ArrayList<>();
         ListTag subList = tag.getList("SubStats", Tag.TAG_COMPOUND);
@@ -134,7 +140,19 @@ public class EchoInstance
             subStats.add(new EchoSubStat("攻击百分比", 0.06));
         }
 
-        return new EchoInstance(name, level, cost, mainStat, maxMainStatValue, subStats, id);
+        // 读取套装ID（兼容旧数据）
+        String setName;
+        if (tag.contains("SetName"))
+        {
+            setName = tag.getString("SetName");
+        } else
+        {
+            // 旧数据没有SetName，根据声骸名称从管理器查询
+            setName = SetBonusManager.getSetIdByEcho(name);
+        }
+
+
+        return new EchoInstance(name, level, cost, mainStat, maxMainStatValue, subStats, id,setName);
     }
 
     public Map<String, Double> getStats()
@@ -158,9 +176,9 @@ public class EchoInstance
         String mainStat = pool.get(RANDOM.nextInt(pool.size()));
         double maxValue = getMaxMainStatValue(mainStat, cost);
         List<EchoSubStat> subStats = generateRandomSubStats();
-
+        String setName = SetBonusManager.getSetIdByEcho(name); // 可能为 null
         // 统一使用主构造器，生成新 UUID
-        return new EchoInstance(name, 0, cost, mainStat, maxValue, subStats, UUID.randomUUID());
+        return new EchoInstance(name, 0, cost, mainStat, maxValue, subStats, UUID.randomUUID(),setName);
     }
 
     // 删除之前的 public EchoInstance(String name, int level) 构造器
@@ -176,6 +194,7 @@ public class EchoInstance
     public double getMainStatValue() { return mainStatValue; }
     public double getMaxMainStatValue() { return maxMainStatValue; }
     public List<EchoSubStat> getAllSubStats() { return subStats; }
+    public String getSetName() {return setName;}
 
     // 获取已解锁的副属性（前 level 条）
     public List<EchoSubStat> getActiveSubStats()
@@ -239,6 +258,10 @@ public class EchoInstance
         tag.putString("MainStat", mainStat);
         tag.putDouble("MaxMainStatValue", maxMainStatValue);
         tag.putDouble("MainStatValue", mainStatValue);
+        if (setName != null && !setName.isEmpty())
+        {
+            tag.putString("SetName", setName);
+        }
 
         ListTag subList = new ListTag();
         for (EchoSubStat sub : subStats)
@@ -246,6 +269,7 @@ public class EchoInstance
             subList.add(sub.toNBT());
         }
         tag.put("SubStats", subList);
+
         return tag;
     }
 
@@ -353,4 +377,11 @@ public class EchoInstance
             default -> 0.30;
         };
     }
+    //声骸套装系统
+    // 检查是否属于某套装
+    public boolean isInSet(String setId)
+    {
+        return setId.equals(this.setName);
+    }
+
 }

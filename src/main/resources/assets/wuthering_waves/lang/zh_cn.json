@@ -6,6 +6,24 @@
   "item.wuthering_waves.crownless_spawn_egg": "无冠者的刷怪蛋",
   "item.wuthering_waves.crownless_echo": "无冠者声骸",
 
+  "entity.wuthering_waves.baby_roseshroom": "刺玫菇（稚形）",
+  "item.wuthering_waves.baby_roseshroom_spawn_egg": "刺玫菇（稚形）刷怪蛋",
+  "item.wuthering_waves.baby_roseshroom_echo": "刺玫菇（稚形）声骸",
+
+  "entity.wuthering_waves.havoc_prism": "湮灭棱镜",
+  "item.wuthering_waves.havoc_prism_spawn_egg": "湮灭棱镜刷怪蛋",
+  "item.wuthering_waves.havoc_prism_echo": "湮灭棱镜声骸",
+
+  "entity.wuthering_waves.roseshroom": "刺玫菇",
+  "item.wuthering_waves.roseshroom_spawn_egg": "刺玫菇刷怪蛋",
+  "item.wuthering_waves.roseshroom_echo": "刺玫菇声骸",
+  "entity.wuthering_waves.havocdreadmane": "暗鬃狼",
+  "item.wuthering_waves.havoc_dreadmane_spawn_egg": "暗鬃狼刷怪蛋",
+  "item.wuthering_waves.havoc_dreadmane_echo": "暗鬃狼声骸",
+
+
+
+
   "Terminal_UI_Text_Chinese": "终端正在初始化...",
   "button.wuthering_waves.echo": "声骸",
   "button.wuthering_waves.empty_slot": "空槽位 %d",

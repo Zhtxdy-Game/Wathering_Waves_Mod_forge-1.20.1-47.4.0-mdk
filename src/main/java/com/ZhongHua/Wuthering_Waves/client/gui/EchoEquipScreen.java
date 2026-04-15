@@ -113,6 +113,18 @@ public class EchoEquipScreen extends Screen
         guiGraphics.drawString(font, Component.literal(String.format("暴击率: %.1f%%", cache.totalCritRate * 100)), leftX, y, 0xFFFFFF);
         y += lineHeight;
         guiGraphics.drawString(font, Component.literal(String.format("暴击伤害: +%.1f%%", cache.totalCritDamage * 100)), leftX, y, 0xFFFFFF);
+
+        // 声骸套装属性加成
+        List<String> activeSets = cache.activeSetBonuses;
+        if (!activeSets.isEmpty())
+        {
+            int yOffset = startY + 8 * lineHeight; // 根据实际行数调整
+            guiGraphics.drawString(font, Component.literal("套装效果:"), leftX, yOffset, 0xFFFFFF);
+            for (int i = 0; i < activeSets.size(); i++)
+            {
+                guiGraphics.drawString(font, Component.literal("  " + activeSets.get(i)), leftX + 10, yOffset + (i+1) * lineHeight, 0xCCCCCC);
+            }
+        }
     }
 
     @Override

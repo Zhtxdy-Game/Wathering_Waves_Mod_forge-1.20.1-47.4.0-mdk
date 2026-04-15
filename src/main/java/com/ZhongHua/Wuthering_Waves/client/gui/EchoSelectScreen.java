@@ -2,6 +2,8 @@ package com.ZhongHua.Wuthering_Waves.client.gui;
 
 import com.ZhongHua.Wuthering_Waves.capability.ModCapabilities;
 import com.ZhongHua.Wuthering_Waves.capability.PlayerTerminalDataImpl;
+import com.ZhongHua.Wuthering_Waves.config.EchoSetConfig;
+import com.ZhongHua.Wuthering_Waves.config.SetBonusManager;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.echo.EchoSubStat;
 import com.ZhongHua.Wuthering_Waves.network.*;
@@ -395,17 +397,36 @@ public class EchoSelectScreen extends Screen
                     String text = "• " + sub.getName() + " " + valueStr;
                     // 已解锁的使用白色高亮显示
                     guiGraphics.drawString(this.font, Component.literal(text), rightX + 10, rightY + lineHeight * (5 + i), 0xFFFFFF);
+                    // 在显示完副属性后
+                    if (displayEcho.getSetName() != null)
+                    {
+                        EchoSetConfig setConfig = SetBonusManager.getSet(displayEcho.getSetName());
+                        if (setConfig != null)
+                        {
+                            guiGraphics.drawString(font, Component.literal("套装: " + setConfig.getName()), rightX, rightY + lineHeight * (4 + activeSubs.size())+20, 0xCCCCCC);
+                        }
+                    }
                 }
             } else
             {
                 // 0级时显示提示
                 guiGraphics.drawString(this.font, Component.literal("辅音属性: 未解锁"), rightX, rightY + lineHeight * 4, 0x666666);
+                // 在显示完副属性后
+                if (displayEcho.getSetName() != null)
+                {
+                    EchoSetConfig setConfig = SetBonusManager.getSet(displayEcho.getSetName());
+                    if (setConfig != null)
+                    {
+                        guiGraphics.drawString(font, Component.literal("套装: " + setConfig.getName()), rightX, rightY + lineHeight * (4 + activeSubs.size())+20, 0xCCCCCC);
+                    }
+                }
             }
         } else
         {
             // 未装备任何声骸
             guiGraphics.drawString(this.font, Component.literal("未装备"), rightX, rightY, 0xAAAAAA);
         }
+
         //3D模型
         int midX = this.width / 3;
         int midWidth = this.width / 3;

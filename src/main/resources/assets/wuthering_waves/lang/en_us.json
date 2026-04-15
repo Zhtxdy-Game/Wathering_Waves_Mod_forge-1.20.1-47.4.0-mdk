@@ -6,6 +6,24 @@
   "item.wuthering_waves.crownless_spawn_egg": "Crownless Spawn Egg",
   "item.wuthering_waves.crownless_echo": "Crownless Echo",
 
+  "entity.wuthering_waves.baby_roseshroom": "Baby Roseshroom",
+  "item.wuthering_waves.baby_roseshroom_spawn_egg": "Baby Roseshroom Spawn Egg",
+  "item.wuthering_waves.baby_roseshroom_echo": "Baby Roseshroom Echo",
+
+  "entity.wuthering_waves.havoc_prism": "Havoc Prism",
+  "item.wuthering_waves.havoc_prism_spawn_egg": "Havoc Prism Spawn Egg",
+  "item.wuthering_waves.havoc_prism_echo": "Havoc Prism Echo",
+
+  "entity.wuthering_waves.roseshroom": "Roseshroom",
+  "item.wuthering_waves.roseshroom_spawn_egg": "Roseshroom Spawn Egg",
+  "item.wuthering_waves.roseshroom_echo": "Roseshroom Echo",
+
+  "entity.wuthering_waves.havoc_dreadmane": "Havocdreadmane",
+  "item.wuthering_waves.havoc_dreadmane_spawn_egg": "Havocdreadmane Spawn Egg",
+  "item.wuthering_waves.havoc_dreadmane_echo": "Havocdreadmane Echo",
+
+
+
   "Terminal_UI_Text_English": "HuiMing Terminal is initializing...",
   "button.wuthering_waves.echo": "Echo",
   "button.wuthering_waves.empty_slot": "Empty Slot %d",

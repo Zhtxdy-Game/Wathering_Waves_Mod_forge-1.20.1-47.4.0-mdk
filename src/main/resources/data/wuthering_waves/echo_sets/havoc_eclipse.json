@@ -1,0 +1,21 @@
+{
+  "id": "havoc_eclipse",
+  "name": "沉日劫明",
+  "members": [
+    "无冠者",
+    "刺玫菇（稚形）",
+    "湮灭棱镜",
+    "刺玫菇",
+    "暗鬃狼"
+  ],
+  "bonuses": {
+    "2": {
+      "attack_percent": 0.10,
+      "crit_rate": 0.00
+    },
+    "5": {
+      "attack_percent": 0.00,
+      "crit_rate": 0.15
+    }
+  }
+}

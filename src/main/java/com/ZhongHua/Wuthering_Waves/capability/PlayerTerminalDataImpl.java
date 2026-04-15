@@ -1,6 +1,8 @@
 package com.ZhongHua.Wuthering_Waves.capability;
 
 import com.ZhongHua.Wuthering_Waves.Config;
+import com.ZhongHua.Wuthering_Waves.config.EchoSetConfig;
+import com.ZhongHua.Wuthering_Waves.config.SetBonusManager;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.item.ModItems;
 import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
@@ -229,12 +231,10 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
     {
         return attributeCache;
     }
-
+    //声骸属性缓存
     @Override
     public void recalculateAttributes(ServerPlayer player)
     {
-
-
         if (player == null) return;
         // 重置缓存
         attributeCache.reset();
@@ -252,7 +252,12 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
             attributeCache.totalDefensePercent += stats.getOrDefault("defense_percent", 0.0);
             attributeCache.totalCritRate += stats.getOrDefault("crit_rate", 0.0);
             attributeCache.totalCritDamage += stats.getOrDefault("crit_damage", 0.0);
+            // 如果声骸直接提供元素伤害加成，也可以在这里累加
         }
+
+        // 3. 统计套装并累加套装效果
+        Map<String, Integer> setCounts = countUniqueEchoesPerSet();
+        applySetBonuses(setCounts, attributeCache);
 
         // 暴击率上限
         if (attributeCache.totalCritRate > 1.0) attributeCache.totalCritRate = 1.0;
@@ -568,5 +573,133 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         map.put("premium", premium);
         return map;
     }
+
+    /**
+     * 统计当前装备中每个套装的唯一声骸数量（按名称去重）
+     * @return Map<套装ID, 唯一声骸数量>
+     */
+    private Map<String, Integer> countUniqueEchoesPerSet()
+    {
+        Map<String, Set<String>> setToUniqueEchoNames = new HashMap<>();
+        for (EchoInstance echo : equippedEchoes)
+        {
+            if (echo == null) continue;
+            String setId = echo.getSetName();
+            if (setId == null || setId.isEmpty()) continue;
+            String echoName = echo.getName();
+            setToUniqueEchoNames.computeIfAbsent(setId, k -> new HashSet<>()).add(echoName);
+        }
+        Map<String, Integer> result = new HashMap<>();
+        for (var entry : setToUniqueEchoNames.entrySet())
+        {
+            result.put(entry.getKey(), entry.getValue().size());
+        }
+        return result;
+    }
+
+    /**
+     * 将 bonus Map 中的属性累加到 EchoAttributeCache
+     */
+    private void addBonusToCache(Map<String, Double> bonus, EchoAttributeCache cache)
+    {
+        for (var entry : bonus.entrySet())
+        {
+            String key = entry.getKey();
+            double value = entry.getValue();
+            switch (key)
+            {
+                case "attack_percent":
+                    cache.totalAttackPercent += value;
+                    break;
+                case "health_percent":
+                    cache.totalHealthPercent += value;
+                    break;
+                case "defense_percent":
+                    cache.totalDefensePercent += value;
+                    break;
+                case "crit_rate":
+                    cache.totalCritRate += value;
+                    break;
+                case "crit_damage":
+                    cache.totalCritDamage += value;
+                    break;
+                case "attack_fixed":
+                    cache.totalAttackFixed += value;
+                    break;
+                case "health_fixed":
+                    cache.totalHealthFixed += value;
+                    break;
+                case "defense_fixed":
+                    cache.totalDefenseFixed += value;
+                    break;
+                default:
+                    // 处理元素伤害加成，假设 key 格式如 "cryo_damage", "pyro_damage" 等
+                    if (key.endsWith("_damage"))
+                    {
+                        String element = key.substring(0, key.length() - 7); // 去掉 "_damage"
+                        cache.elementalBonus.put(element, cache.elementalBonus.getOrDefault(element, 0.0) + value);
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * 格式化套装效果用于显示
+     */
+    private String formatBonus(Map<String, Double> bonus)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (var entry : bonus.entrySet())
+        {
+            if (sb.length() > 0) sb.append(", ");
+            String key = entry.getKey();
+            double val = entry.getValue();
+            if (key.contains("percent") || key.contains("rate") || key.contains("damage"))
+            {
+                sb.append(key).append(" ").append(String.format("%.1f%%", val * 100));
+            } else
+            {
+                sb.append(key).append(" ").append(String.format("%.0f", val));
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 根据套装统计结果，计算并累加套装效果到 cache 中
+     */
+    private void applySetBonuses(Map<String, Integer> setCounts, EchoAttributeCache cache)
+    {
+        for (var entry : setCounts.entrySet())
+        {
+            String setId = entry.getKey();
+            int count = entry.getValue();
+            EchoSetConfig config = SetBonusManager.getSet(setId);
+            if (config == null) continue;
+
+            // 2件套效果（如果数量 >= 2）
+            if (count >= 2)
+            {
+                Map<String, Double> bonus2 = config.getBonus2Piece();
+                if (bonus2 != null)
+                {
+                    addBonusToCache(bonus2, cache);
+                    cache.activeSetBonuses.add(config.getName() + " (2件): " + formatBonus(bonus2));
+                }
+            }
+            // 5件套效果（如果数量 >= 5）
+            if (count >= 5)
+            {
+                Map<String, Double> bonus5 = config.getBonus5Piece();
+                if (bonus5 != null)
+                {
+                    addBonusToCache(bonus5, cache);
+                    cache.activeSetBonuses.add(config.getName() + " (5件): " + formatBonus(bonus5));
+                }
+            }
+        }
+    }
+
 
 }

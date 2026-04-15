@@ -10,6 +10,8 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.List;
+
 public class ModItems
 {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Wuthering_WavesMod.MOD_ID);
@@ -36,10 +38,43 @@ public class ModItems
     public static final RegistryObject<AbstractEchoCrystalItem> CROWNLESS_ECHO = ITEMS.register("crownless_echo",
             () -> new CrownlessEcho(new Item.Properties()));
 
+    // 刺玫菇（稚形）
+    public static final RegistryObject<AbstractEchoCrystalItem> BABY_ROSE_SHROOM_ECHO = ITEMS.register("baby_roseshroom_echo",
+            () -> new GenericEchoCrystalItem(new Item.Properties(), "刺玫菇（稚形）", 1,
+                    List.of("攻击百分比", "生命百分比", "防御百分比")));
+
+    // 湮灭棱镜
+    public static final RegistryObject<AbstractEchoCrystalItem> HAVOC_PRISM_ECHO = ITEMS.register("havoc_prism_echo",
+            () -> new GenericEchoCrystalItem(new Item.Properties(), "湮灭棱镜", 1,
+                    List.of( "攻击百分比", "生命百分比", "防御百分比")));
+
+    // 刺玫菇
+    public static final RegistryObject<AbstractEchoCrystalItem> ROSE_SHROOM_ECHO = ITEMS.register("roseshroom_echo",
+            () -> new GenericEchoCrystalItem(new Item.Properties(), "刺玫菇", 3,
+                    List.of("攻击百分比", "生命百分比", "防御百分比", "共鸣效率","冷凝伤害加成","热熔伤害加成","导电伤害加成","气动伤害加成","衍射伤害加成","湮灭伤害加成")));
+
+    // 暗鬃狼
+    public static final RegistryObject<AbstractEchoCrystalItem> HAVOC_DREADMANE_ECHO = ITEMS.register("havoc_dreadmane_echo",
+            () -> new GenericEchoCrystalItem(new Item.Properties(), "暗鬃狼", 3,
+                    List.of("攻击百分比", "生命百分比", "防御百分比", "共鸣效率","冷凝伤害加成","热熔伤害加成","导电伤害加成","气动伤害加成","衍射伤害加成","湮灭伤害加成")));
+
+
 
     //怪物刷怪蛋
     public static final RegistryObject<Item> CROWNLESS_SPAWN_EGG = ITEMS.register("crownless_spawn_egg",
             () -> new ForgeSpawnEggItem(ModEntities.CROWNLESS, 0x2c2c2c, 0x8c8c8c, new Item.Properties()));//无冠者
+
+    public static final RegistryObject<Item> BABY_ROSE_SHROOM_SPAWN_EGG = ITEMS.register("baby_roseshroom_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.BABY_ROSE_SHROOM, 0x8B5A2B, 0x4CAF50, new Item.Properties())); // 棕色+绿色
+
+    public static final RegistryObject<Item> HAVOC_PRISM_SPAWN_EGG = ITEMS.register("havoc_prism_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.Havoc_Prism, 0x8B5A2B, 0x4CAF50, new Item.Properties())); // 棕色+绿色
+
+    public static final RegistryObject<Item> ROSE_SHROOM_SPAWN_EGG = ITEMS.register("roseshroom_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.ROSE_SHROOM, 0x8B5A2B, 0x4CAF50, new Item.Properties())); // 棕色+绿色
+
+    public static final RegistryObject<Item> HAVOC_DREADMANE_SPAWN_EGG = ITEMS.register("havoc_dreadmane_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.HAVOC_DREADMANE, 0x8B5A2B, 0x4CAF50, new Item.Properties())); // 棕色+绿色
 
     public static void register (IEventBus eventBus)
     {

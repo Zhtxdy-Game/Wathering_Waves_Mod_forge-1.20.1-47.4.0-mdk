@@ -20,6 +20,10 @@ public class EchoIconManager
         String fileName = switch (echoName)
         {
             case "无冠者" -> "crownless_echo";
+            case "刺玫菇（稚形）" -> "baby_roseshroom_echo";
+            case "湮灭棱镜" -> "havoc_prism_echo";
+            case "刺玫菇" -> "roseshroom_echo";
+            case "暗鬃狼" -> "havoc_dreadmane_echo";
 
             default -> "unknown";
         };

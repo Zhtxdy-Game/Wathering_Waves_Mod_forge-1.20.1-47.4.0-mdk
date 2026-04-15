@@ -38,5 +38,29 @@ public class DamageHandler
 
             event.setAmount(damage);
         });
+
+        double originalDamage = event.getAmount();
+        System.out.println("[伤害计算] 原始伤害: " + originalDamage);
+
+        player.getCapability(ModCapabilities.PLAYER_TERMINAL_DATA).ifPresent(data ->
+        {
+            EchoAttributeCache cache = data.getAttributeCache();
+            double newDamage = (originalDamage + cache.totalAttackFixed) * (1 + cache.totalAttackPercent);
+            System.out.println("[伤害计算] 攻击加成后: " + newDamage + " (固定+" + cache.totalAttackFixed + ", 百分比+" + (cache.totalAttackPercent * 100) + "%)");
+
+            // 暴击判定
+            if (player.getRandom().nextDouble() < cache.totalCritRate)
+            {
+                newDamage *= (1 + cache.totalCritDamage);
+                System.out.println("[伤害计算] 暴击！暴击率: " + (cache.totalCritRate * 100) + "%, 爆伤: " + (cache.totalCritDamage * 100) + "%");
+                System.out.println("[伤害计算] 暴击后伤害: " + newDamage);
+            } else
+            {
+                System.out.println("[伤害计算] 未暴击");
+            }
+            event.setAmount((float) newDamage);
+        });
     }
+
+
 }
