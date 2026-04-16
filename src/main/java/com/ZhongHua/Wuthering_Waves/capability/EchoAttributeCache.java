@@ -79,6 +79,11 @@ public class EchoAttributeCache
 
     public void deserializeNBT(CompoundTag tag)
     {
+
+        // 先清空所有集合
+        elementalBonus.clear();
+        activeSetBonuses.clear();
+
         totalHealthFixed = tag.getDouble("HealthFixed");
         totalHealthPercent = tag.getDouble("HealthPercent");
         totalAttackFixed = tag.getDouble("AttackFixed");
@@ -90,15 +95,18 @@ public class EchoAttributeCache
         finalHealthModifier = tag.getDouble("HealthMod");
         finalArmorModifier = tag.getDouble("ArmorMod");
 
+        // 读取元素加成
         CompoundTag elementalTag = tag.getCompound("ElementalBonus");
         for (String key : elementalTag.getAllKeys())
         {
             elementalBonus.put(key, elementalTag.getDouble(key));
         }
+        // 读取套装效果描述列表
         ListTag listTag = tag.getList("ActiveSetBonuses", Tag.TAG_STRING);
         for (int i = 0; i < listTag.size(); i++)
         {
             activeSetBonuses.add(listTag.getString(i));
         }
+
     }
 }
