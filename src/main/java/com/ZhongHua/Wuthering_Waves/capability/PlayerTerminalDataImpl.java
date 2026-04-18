@@ -5,10 +5,7 @@ import com.ZhongHua.Wuthering_Waves.config.EchoSetConfig;
 import com.ZhongHua.Wuthering_Waves.config.SetBonusManager;
 import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import com.ZhongHua.Wuthering_Waves.item.ModItems;
-import com.ZhongHua.Wuthering_Waves.network.ModNetwork;
-import com.ZhongHua.Wuthering_Waves.network.SyncAttributeCachePacket;
-import com.ZhongHua.Wuthering_Waves.network.SyncTerminalDataPacket;
-import com.ZhongHua.Wuthering_Waves.network.UpgradeConfirmPacket;
+import com.ZhongHua.Wuthering_Waves.network.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -37,12 +34,7 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
 
     public void syncToClient(ServerPlayer player)
     {
-        // 方式1：如果 ModNetwork 中定义了 sendToPlayer 静态方法
         ModNetwork.sendToPlayer(new SyncTerminalDataPacket(this.serializeNBT()), player);
-
-        // 方式2：直接使用 CHANNEL（需确保 ModNetwork.CHANNEL 是 public static）
-        // ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-        //         new SyncTerminalDataPacket(this.serializeNBT()));
     }
     // 获取最大容量，延迟从 Config 读取
     private int getConfiguredMaxCapacity()
@@ -232,6 +224,7 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         return attributeCache;
     }
     //声骸属性缓存
+
     @Override
     public void recalculateAttributes(ServerPlayer player)
     {
@@ -253,6 +246,8 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
             attributeCache.totalCritRate += stats.getOrDefault("crit_rate", 0.0);
             attributeCache.totalCritDamage += stats.getOrDefault("crit_damage", 0.0);
             // 如果声骸直接提供元素伤害加成，也可以在这里累加
+
+            System.out.println("声骸 " + echo.getName() + " crit_rate: " + stats.getOrDefault("crit_rate", 0.0));
         }
 
         // 3. 统计套装并累加套装效果
@@ -267,6 +262,7 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
 
         // 同步到客户端
         syncAttributeCacheToClient(player);
+
     }
 
     private void applyAttributeModifiers(ServerPlayer player)
@@ -406,9 +402,20 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
         // 升级声骸
         echo.setLevel(currentLevel + 1);
         // 重新计算属性（setLevel 内部已调用 buildStats）
+        updateEchoInAllLists(echo);
         // 重新计算装备总属性
         recalculateAttributes(player);
+        syncToClient(player);           // 发送完整数据包（装备槽位、声骸库）
+
         player.sendSystemMessage(Component.literal("声骸升级成功！当前等级 " + echo.getLevel()));
+
+        // 升级成功后
+        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new UpgradeResponsePacket(true));
+
+        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new EchoUpgradedPacket(echo.getId(), echo.getLevel()));
+
         return true;
     }
 
@@ -494,6 +501,7 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
 
             ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                     new UpgradeConfirmPacket(echo.getId(), maxLevel, materials));
+
             return;
         }
 
@@ -507,6 +515,7 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
 
         // 设置等级
         echo.setLevel(maxLevel);
+        updateEchoInAllLists(echo);
         recalculateAttributes(player);
 
         player.sendSystemMessage(Component.literal(
@@ -514,6 +523,36 @@ public class PlayerTerminalDataImpl implements IPlayerTerminalData
 
         recalculateAttributes(player);
         syncToClient(player);  // 同步装备列表和声骸库
+        // 升级成功后
+        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new UpgradeResponsePacket(true));
+
+        ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new EchoUpgradedPacket(echo.getId(), echo.getLevel()));
+
+    }
+
+    private void updateEchoInAllLists(EchoInstance updated)
+    {
+        // 更新声骸库
+        for (int i = 0; i < echoList.size(); i++)
+        {
+            if (echoList.get(i).getId().equals(updated.getId()))
+            {
+                echoList.set(i, updated);
+                break;
+            }
+        }
+        // 更新装备槽位
+        for (int i = 0; i < equippedEchoes.size(); i++)
+        {
+            EchoInstance e = equippedEchoes.get(i);
+            if (e != null && e.getId().equals(updated.getId()))
+            {
+                equippedEchoes.set(i, updated);
+                break;
+            }
+        }
     }
 
     // 辅助方法：根据等级获取对应的密音筒物品

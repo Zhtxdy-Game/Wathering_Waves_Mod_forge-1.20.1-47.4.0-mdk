@@ -52,8 +52,8 @@ public class DamageHandler
             if (player.getRandom().nextDouble() < cache.totalCritRate)
             {
                 newDamage *= (1 + cache.totalCritDamage);
-                System.out.println("[伤害计算] 暴击！暴击率: " + (cache.totalCritRate * 100) + "%, 爆伤: " + (cache.totalCritDamage * 100) + "%");
-                System.out.println("[伤害计算] 暴击后伤害: " + newDamage);
+                System.out.println("[伤害计算] 暴击！baojilv: " + (cache.totalCritRate * 100) + "%, baoshang: " + (cache.totalCritDamage * 100) + "%");
+                System.out.println("[伤害计算] baojigou伤Damge: " + newDamage);
             } else
             {
                 System.out.println("[伤害计算] 未暴击");

@@ -48,15 +48,16 @@ public class SyncTerminalDataPacket
 
             // 刷新当前打开的界面
             Screen screen = Minecraft.getInstance().screen;
-            if (screen instanceof EchoSelectScreen)
+            if (screen instanceof EchoCultivateScreen)
+            {
+                // 直接调用刷新方法（内部有防抖）
+                ((EchoCultivateScreen) screen).refreshFromCache();
+            } else if (screen instanceof EchoSelectScreen)
             {
                 ((EchoSelectScreen) screen).refreshFromCache();
             } else if (screen instanceof EchoEquipScreen)
             {
                 ((EchoEquipScreen) screen).refreshFromCache();
-            }else if (screen instanceof EchoCultivateScreen cultivateScreen)
-            {
-                cultivateScreen.refreshFromCache();   // 新增
             }
         });
         ctx.get().setPacketHandled(true);

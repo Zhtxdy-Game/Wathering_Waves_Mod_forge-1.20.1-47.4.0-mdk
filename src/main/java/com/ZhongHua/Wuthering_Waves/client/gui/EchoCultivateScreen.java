@@ -66,6 +66,10 @@ public class EchoCultivateScreen extends Screen
     // 按钮
     private Button upgradeBtn, upgradeAllBtn, backBtn;
 
+    //刷新
+    private int[] materialCounts = new int[5];
+    private int tickCounter = 0;
+    private long lastRefreshTime = 0;
 
     // 材料物品列表
     private static final ItemStack[] MATERIALS =
@@ -93,6 +97,13 @@ public class EchoCultivateScreen extends Screen
     {
         this(0, new ArrayList<>(), 0); // 默认参数
     }
+
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false; // 不暂停世界，以便背包和实体数据正常同步
+    }
+
 
     @Override
     protected void init()
@@ -199,23 +210,40 @@ public class EchoCultivateScreen extends Screen
 
     private void refreshSlotButtons()
     {
-        for (Button btn : slotButtons) this.removeWidget(btn);
+        // 移除旧的槽位按钮
+        for (Button btn : slotButtons)
+        {
+            this.removeWidget(btn);
+        }
         slotButtons.clear();
+
+        // 直接从缓存获取最新装备列表（不使用 this.equippedEcho，避免滞后）
+        List<EchoInstance> latestEquipped = ClientTerminalDataCache.getEquippedEchoes();
+        while (latestEquipped.size() < 5) latestEquipped.add(null);
 
         for (int i = 0; i < 5; i++)
         {
             final int idx = i;
             int y = slotButtonsStartY + i * (SLOT_BUTTON_HEIGHT + SLOT_GAP);
-            EchoInstance echo = (idx < equippedEcho.size()) ? equippedEcho.get(idx) : null;
+            EchoInstance echo = (idx < latestEquipped.size()) ? latestEquipped.get(idx) : null;
             Component btnText = (echo == null) ?
                     Component.translatable("button.wuthering_waves.empty_slot", idx + 1) :
                     Component.literal(echo.getName() + " Lv." + echo.getLevel());
+
+            // 调试日志
+            if (echo != null)
+            {
+                System.out.println("index " + idx + ": " + echo.getName() + " LV " + echo.getLevel());
+            }
+
             Button slotBtn = Button.builder(btnText, button ->
             {
                 currentSlotIndex = idx;
-                selectedEcho = (idx < equippedEcho.size()) ? equippedEcho.get(idx) : null;
-                // 不清空列表选中，但可以保留
+                // 点击时也从缓存获取最新
+                List<EchoInstance> currentEquipped = ClientTerminalDataCache.getEquippedEchoes();
+                selectedEcho = (idx < currentEquipped.size()) ? currentEquipped.get(idx) : null;
             }).bounds(slotButtonsStartX, y, SLOT_BUTTON_WIDTH, SLOT_BUTTON_HEIGHT).build();
+
             this.addRenderableWidget(slotBtn);
             slotButtons.add(slotBtn);
         }
@@ -259,6 +287,8 @@ public class EchoCultivateScreen extends Screen
     {
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        // 材料栏
+        renderMaterialSlotsWithCache(guiGraphics);
 
         // 右侧详情区域
         int rightX = this.width * 2 / 3 + 100;
@@ -292,18 +322,47 @@ public class EchoCultivateScreen extends Screen
                 guiGraphics.drawString(this.font, Component.literal("辅音属性: 未解锁"), rightX, rightY + lineHeight * 4, 0x666666);
             }
 
-            // 材料栏
-            renderMaterialSlots(guiGraphics);
         } else
         {
             guiGraphics.drawString(this.font, Component.literal("未选中任何声骸"), rightX, rightY, 0xAAAAAA);
         }
 
-
-
     }
 
-    private void renderMaterialSlots(GuiGraphics guiGraphics)
+    @Override
+    public void tick()
+    {
+        super.tick();
+
+        // 每20ticks（1秒）刷新一次材料数量
+        if (++tickCounter % 20 == 0)
+        {
+            refreshMaterialCounts();
+        }
+    }
+
+    private void refreshMaterialCounts()
+    {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        for (int i = 0; i < MATERIALS.length; i++)
+        {
+            materialCounts[i] = player.getInventory().countItem(MATERIALS[i].getItem());
+        }
+    }
+
+    public void refreshMaterialCountsNow()
+    {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        for (int i = 0; i < MATERIALS.length; i++) {
+            materialCounts[i] = player.getInventory().countItem(MATERIALS[i].getItem());
+        }
+    }
+
+
+    private void renderMaterialSlotsWithCache(GuiGraphics guiGraphics)
     {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
@@ -316,8 +375,8 @@ public class EchoCultivateScreen extends Screen
         for (int i = 0; i < MATERIALS.length; i++)
         {
             ItemStack material = MATERIALS[i];
-            // 获取玩家背包中该物品的数量
-            int count = player.getInventory().countItem(material.getItem());
+            int count = materialCounts[i];
+
             // 绘制格子背景
             guiGraphics.fill(x, y, x + slotSize, y + slotSize, 0xFF333333);
             guiGraphics.renderOutline(x, y, slotSize, slotSize, 0xFFFFFFFF);
@@ -327,7 +386,8 @@ public class EchoCultivateScreen extends Screen
             if (count > 0)
             {
                 String countStr = String.valueOf(count);
-                guiGraphics.drawString(font, countStr, x + slotSize - 10, y + slotSize - 8, 0xFFFFFF);
+                int color = (count > 0) ? 0xFFFFFF : 0xFF5555;
+                guiGraphics.drawString(font, countStr, x + slotSize - font.width(countStr) - 2, y + slotSize - 10, color, true);
             }
             x += slotSize + gap;
         }
@@ -391,30 +451,40 @@ public class EchoCultivateScreen extends Screen
         }
     }
 
+    // EchoCultivateScreen.java
     public void refreshFromCache()
     {
-        // 刷新装备槽位数据
-        this.equippedEcho = new ArrayList<>(ClientTerminalDataCache.getEquippedEchoes());
+
+        long now = System.currentTimeMillis();
+        if (now - lastRefreshTime < 200) return; // 200ms内只刷新一次
+        lastRefreshTime = now;
+
+        // 直接从全局缓存获取最新数据
+        List<EchoInstance> newEquipped = ClientTerminalDataCache.getEquippedEchoes();
+        List<EchoInstance> newAllEcho = ClientTerminalDataCache.getEchoList();
+
+        // 更新本地字段
+        this.equippedEcho = new ArrayList<>(newEquipped);
         while (this.equippedEcho.size() < 5) this.equippedEcho.add(null);
-        // 刷新声骸列表
-        this.allEcho = new ArrayList<>(ClientTerminalDataCache.getEchoList());
+        this.allEcho = new ArrayList<>(newAllEcho);
+
         // 重新计算页数
         totalPages = (int) Math.ceil(allEcho.size() / (double)(LIST_ROWS * LIST_COLS));
         if (totalPages == 0) totalPages = 1;
         if (currentPage >= totalPages) currentPage = totalPages - 1;
         if (currentPage < 0) currentPage = 0;
+
         // 刷新当前选中的声骸（根据ID匹配）
         if (selectedEcho != null)
         {
-            EchoInstance newEcho = allEcho.stream()
+            selectedEcho = allEcho.stream()
                     .filter(e -> e.getId().equals(selectedEcho.getId()))
                     .findFirst().orElse(null);
-            selectedEcho = newEcho;
         }
-        // 刷新UI组件
+
+        // 只刷新槽位按钮和列表按钮，不要重建整个界面（避免丢失分页按钮和升级按钮）
         refreshSlotButtons();
         refreshListButtons();
-        // 材料栏数量会在下一帧 render 中自动从背包读取，无需额外处理
     }
 
 }

@@ -2,6 +2,7 @@ package com.ZhongHua.Wuthering_Waves.network;
 
 import com.ZhongHua.Wuthering_Waves.client.gui.EchoEquipScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -32,12 +33,14 @@ public class SyncAttributeCachePacket
     {
         ctx.get().enqueueWork(() ->
         {
-            // 只在客户端执行
-            if (ctx.get().getDirection().getReceptionSide().isClient())
+            ClientAttributeCache.setData(cacheNbt);
+            Screen screen = Minecraft.getInstance().screen;
+            // 只刷新属性显示界面，不刷新培养界面（避免干扰）
+            if (screen instanceof EchoEquipScreen equipScreen)
             {
-                ClientAttributeCache.setData(cacheNbt);
-                // 不需要额外刷新，因为 render 会实时读取缓存
+                equipScreen.refreshAttributeDisplay();
             }
+            // 注意：不要刷新 EchoCultivateScreen
         });
         ctx.get().setPacketHandled(true);
     }

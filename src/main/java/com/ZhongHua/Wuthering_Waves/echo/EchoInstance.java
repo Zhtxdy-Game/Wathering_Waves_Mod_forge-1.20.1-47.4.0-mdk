@@ -44,12 +44,42 @@ public class EchoInstance
     public void buildStats()
     {
         stats.clear();
-        // 添加主属性
-        addStatFromAttribute(mainStat, mainStatValue);
-        // 添加当前等级已解锁的副属性
+
+        // 将中文属性名映射为内部键的工具方法
+        java.util.function.Function<String, String> toKey = attr ->
+        {
+            switch (attr) {
+                case "暴击率": return "crit_rate";
+                case "暴击伤害": return "crit_damage";
+                case "攻击百分比": return "attack_percent";
+                case "生命百分比": return "health_percent";
+                case "防御百分比": return "defense_percent";
+                case "共鸣效率": return "energy_recharge";
+                case "治疗加成": return "healing_bonus";
+                case "固定攻击力": return "attack_fixed";
+                case "固定生命值": return "health_fixed";
+                case "固定防御力": return "defense_fixed";
+                default:
+                    if (attr.contains("伤害加成"))
+                    {
+                        // 如 "冷凝伤害加成" -> "cryo_damage"
+                        String element = attr.replace("伤害加成", "").trim();
+                        return element + "_damage";
+                    }
+                    return attr;
+            }
+        };
+
+        // 1. 添加主属性
+        String mainKey = toKey.apply(mainStat);
+        stats.put(mainKey, mainStatValue);
+
+        // 2. 添加副属性（累加）
         for (EchoSubStat sub : getActiveSubStats())
         {
-            addStatFromAttribute(sub.getName(), sub.getValue());
+            String subKey = toKey.apply(sub.getName());
+            double existing = stats.getOrDefault(subKey, 0.0);
+            stats.put(subKey, existing + sub.getValue());
         }
     }
 

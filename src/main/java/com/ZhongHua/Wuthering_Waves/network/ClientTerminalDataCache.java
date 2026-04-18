@@ -5,6 +5,7 @@ import com.ZhongHua.Wuthering_Waves.echo.EchoInstance;
 import net.minecraft.nbt.CompoundTag;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ClientTerminalDataCache
 {
@@ -21,6 +22,7 @@ public class ClientTerminalDataCache
     {
         PlayerTerminalDataImpl dummy = new PlayerTerminalDataImpl();
         dummy.deserializeNBT(nbt);
+        // 创建新列表，不保留原引用
         echoList = new ArrayList<>(dummy.getEchoList());
         equippedEchoes = new ArrayList<>(dummy.getEquippedEchoes());
         maxCapacity = dummy.getMaxCapacity();
@@ -39,6 +41,27 @@ public class ClientTerminalDataCache
         }
         return total;
     }
+
+    public static void updateEchoLevel(UUID echoId, int newLevel)
+    {
+        for (EchoInstance echo : echoList)
+        {
+            if (echo.getId().equals(echoId))
+            {
+                echo.setLevel(newLevel);
+                break;
+            }
+        }
+        for (EchoInstance echo : equippedEchoes)
+        {
+            if (echo != null && echo.getId().equals(echoId))
+            {
+                echo.setLevel(newLevel);
+                break;
+            }
+        }
+    }
+
 
     public static List<EchoInstance> getEchoList() { return echoList; }
     public static List<EchoInstance> getEquippedEchoes() { return equippedEchoes; }

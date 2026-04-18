@@ -44,8 +44,8 @@ public class UpgradeEchoRequestPacket
                         EchoInstance echo = impl.getEchoById(echoId); // 需要实现此方法
                         if (echo != null && echo.getLevel() < 5)
                         {
-                            if (impl.upgradeEcho(player, echo)) {
-
+                            if (impl.upgradeEcho(player, echo))
+                            {
                                 // 升级成功，同步数据
                                 impl.syncToClient(player);
                             }

@@ -96,6 +96,7 @@ public class Wuthering_WavesMod
         {
             event.enqueueWork(() ->
             {
+                // 替换为 GeckoLib 渲染器
                 EntityRenderers.register(ModEntities.CROWNLESS.get(), CrownlessRenderer::new);
                 EntityRenderers.register(ModEntities.BABY_ROSE_SHROOM.get(), BabyRoseshroomRenderer::new);
                 EntityRenderers.register(ModEntities.Havoc_Prism.get(), HavocPrismRenderer::new);
@@ -107,7 +108,6 @@ public class Wuthering_WavesMod
         @SubscribeEvent
         public static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event)
         {
-            event.registerLayerDefinition(CrownlessRenderer.LAYER_LOCATION, CrownlessModel::createBodyLayer);
             event.registerLayerDefinition(BabyRoseshroomRenderer.LAYER_LOCATION, BabyRoseshroomModel::createBodyLayer);
             event.registerLayerDefinition(HavocPrismRenderer.LAYER_LOCATION, HavocPrismModel::createBodyLayer);
             event.registerLayerDefinition(RoseshroomRenderer.LAYER_LOCATION, RoseshroomModel::createBodyLayer);

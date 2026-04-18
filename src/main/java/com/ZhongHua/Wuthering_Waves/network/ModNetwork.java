@@ -51,6 +51,15 @@ public class ModNetwork
                 UpgradeConfirmPacket::encode, UpgradeConfirmPacket::new,
                 UpgradeConfirmPacket::handle);
 
+        CHANNEL.registerMessage(id++, UpgradeResponsePacket.class,
+                UpgradeResponsePacket::encode, UpgradeResponsePacket::new,
+                UpgradeResponsePacket::handle);
+
+        CHANNEL.registerMessage(id++, EchoUpgradedPacket.class,
+                EchoUpgradedPacket::encode, EchoUpgradedPacket::new,
+                EchoUpgradedPacket::handle);
+
+
     }
 
     public static void sendToPlayer(Object packet, ServerPlayer player)
